@@ -22,6 +22,10 @@ kalcal/generation/loader.py
 kalcal/generation/normal_gains.py
 kalcal/generation/parser.py
 kalcal/generation/phase_gains.py
+kalcal/mocktools/__init__.py
+kalcal/mocktools/full.py
+kalcal/mocktools/params.py
+kalcal/mocktools/shell.py
 kalcal/plotting/__init__.py
 kalcal/plotting/multiplot.py
 kalcal/plotting/plotops.py
@@ -37,7 +41,3 @@ tests/__init__.py
 tests/test.py
 tests/test_jacobian.py
 tests/test_statistics.py
-tests/mock/__init__.py
-tests/mock/full.py
-tests/mock/params.py
-tests/mock/shell.py

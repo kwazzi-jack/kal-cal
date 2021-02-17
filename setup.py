@@ -6,6 +6,8 @@ with open("README.md", "r", encoding="utf-8") as file:
 with open("requirements.txt", "r", encoding="utf-8") as file:
     requirements = file.readlines()
 
+print(requirements)
+
 setuptools.setup(
     name="kal-cal", # Replace with your own username
     version="0.0.1",

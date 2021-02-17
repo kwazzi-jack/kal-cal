@@ -1,9 +1,7 @@
 import numpy as np
-from numba import jit, objmode
-from tools.utils import gains_vector, gains_reshape, measure_vector,\
+from kalcal.tools.utils import gains_vector, gains_reshape, measure_vector,\
                         state_ensemble, measure_noise, process_noise
-from tools.jacobian import compute_aug_csr, compute_aug_np
-from tools.sparseops import csr_dot_vec
+from kalcal.tools.jacobian import compute_aug_csr
 
 
 def sparse_algorithm(
@@ -66,17 +64,17 @@ def sparse_algorithm(
     
     # Run Extended Kalman Filter with 
     # Sparse matrices
-    print("\n Ensemble Kalman Filter (SPARSE):")
+    print("==> Ensemble Kalman Filter (SPARSE):")
     for k in range(1, n_time): 
 
-        # # Progress Bar
-        # bar_len = 100
-        # total = n_time - 1
-        # filled_len = int(round(bar_len*k/float(n_time - 1)))
-        # bar = u"\u2588" * filled_len + ' '\
-        #         * (bar_len - filled_len)
-        # print("\r%d%%|%s| %d/%d" % (k/total*100, 
-        #                             bar, k, total), end="")
+        # Progress Bar
+        bar_len = 100
+        total = n_time - 1
+        filled_len = int(round(bar_len*k/float(n_time - 1)))
+        bar = u"\u2588" * filled_len + ' '\
+                * (bar_len - filled_len)
+        print("\r%d%%|%s| %d/%d" % (k/total*100, 
+                                    bar, k, total), end="")
 
         q = process_noise(Q)
         
@@ -130,7 +128,7 @@ def sparse_algorithm(
     
         m[k] = gains_reshape(mf, shape)
 
-    # Print newline
+    # Newline
     print()
 
     # Return Posterior states and covariances

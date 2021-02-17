@@ -1,8 +1,8 @@
 import numpy as np
 from numba import jit, objmode
-from tools.utils import gains_vector, gains_reshape, measure_vector
-from tools.jacobian import compute_aug_csr, compute_aug_np
-from tools.sparseops import csr_dot_vec
+from kalcal.tools.utils import gains_vector, gains_reshape, measure_vector
+from kalcal.tools.jacobian import compute_aug_csr, compute_aug_np
+from kalcal.tools.sparseops import csr_dot_vec
 
 
 def sparse_algorithm(
@@ -66,7 +66,7 @@ def sparse_algorithm(
 
     # Run Iterated Extended Kalman Filter with 
     # Sparse matrices
-    print("\n Iterated Extended Kalman Filter (SPARSE):")
+    print("==> Iterated Extended Kalman Filter (SPARSE):")
     for k in range(1, n_time): 
 
         # Progress Bar
@@ -153,8 +153,8 @@ def sparse_algorithm(
         # Record Posterior values from last iterated state
         m[k] = gains_reshape(mt, shape)
         P[k] = np.diag(np.diag(Pp - K @ J @ Pp).real)
-        
-    # Print newline
+
+    # Newline
     print()
 
     # Return Posterior states and covariances
@@ -223,7 +223,7 @@ def numpy_algorithm(
     
     # Run Extended Kalman Filter with 
     # Sparse matrices
-    print("\n Iterated Extended Kalman Filter (NUMPY|JIT):")
+    print("==> Iterated Extended Kalman Filter (NUMPY|JIT):")
     for k in range(1, n_time): 
         
         # Progress Bar in object-mode
@@ -312,7 +312,7 @@ def numpy_algorithm(
         m[k] = gains_reshape(mt, shape)
         P[k] = np.diag(np.diag(Pp - K @ J @ Pp).real)
 
-    # Newline for progressbar
+    # Newline
     print()
 
     # Return Posterior states and covariances

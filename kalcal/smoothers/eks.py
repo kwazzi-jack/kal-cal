@@ -1,9 +1,9 @@
 import numpy as np
 from numba import njit, objmode
-from tools.utils import gains_vector, gains_reshape
+from kalcal.tools.utils import gains_vector, gains_reshape
 
 
-#@njit(fastmath=True, nogil=True)
+@njit(fastmath=True, nogil=True)
 def numpy_algorithm(
     m : np.ndarray, 
     P : np.ndarray, 
@@ -28,7 +28,7 @@ def numpy_algorithm(
 
     # Run Extended Kalman Smoother with
     # Numpy matrices
-    print("\n Ext. Smoother (NUMPY|JIT):")
+    print("==> Ext. Smoother (NUMPY|JIT):")
     for k in range(-2, -(n_time + 1), -1):   
          
         # Progress Bar in object-mode
@@ -43,22 +43,22 @@ def numpy_algorithm(
 
         # Predict Step
         mp = gains_vector(m[k])
-        Pt = P[k].astype(np.complex64)
+        Pt = P[k].astype(np.complex128)
         Pp = Pt + Q
 
         # Smooth Step
-        Pinv = np.linalg.inv(Pp).astype(np.complex64)
+        Pinv = np.linalg.inv(Pp).astype(np.complex128)
         G = Pt @ Pinv
 
         # Record Posterior Smooth Values
         e = gains_vector(ms[k + 1]) - mp
-        E = (Ps[k + 1] - Pp).astype(np.complex64)
+        E = (Ps[k + 1] - Pp).astype(np.complex128)
         ms[k] = gains_reshape(mp + G @ e, gains_shape)
         Ps[k] = np.diag(np.diag(Pt + G @ E @ G.T).real)
 
         G_values[k] = G.real
 
-    # Print newline
+    # Newline
     print()
 
     # Return Posterior smooth states and covariances

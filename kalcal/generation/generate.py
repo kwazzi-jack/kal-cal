@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from casacore.tables import table
 import Tigger
 import dask.array as da
@@ -11,13 +9,13 @@ from africanus.calibration.utils import chunkify_rows
 from africanus.calibration.utils.dask import corrupt_vis
 from africanus.model.coherency.dask import convert
 
-from .normal_gains import normal_gains
-from .phase_gains import phase_gains
-from .parser import generate_parser
+from kalcal.generation.normal_gains import normal_gains
+from kalcal.generation.phase_gains import phase_gains
+from kalcal.generation.parser import generate_parser
+from kalcal.datasets.sky_models import (MODEL_1, 
+    MODEL_4, MODEL_50)
+
 import numpy as np
-import sys
-import argparse
-import yaml
 
 
 def jones(args):
@@ -70,7 +68,7 @@ def jones(args):
     ms.close()
 
     # Get rest of dimensions
-    n_row, n_freq, n_corr = flag.shape
+    _, n_freq, n_corr = flag.shape
 
     # Raise error if correlation axis too small
     if n_corr != 4:
@@ -86,6 +84,17 @@ def jones(args):
 
     # Check dimension
     assert freq.size == n_freq
+
+    # Check for sky-model
+    if args.sky_model == 'MODEL-1.txt':
+        args.sky_model = MODEL_1
+    elif args.sky_model == 'MODEL-4.txt':
+        args.sky_model = MODEL_4
+    elif args.sky_model == 'MODEL-50.txt':
+        args.sky_model = MODEL_50
+    else:
+        raise ValueError(f"Sky-model {args.sky_model} not in "\
+            + "kalcal/datasets/sky_model/")
 
     # Build source model from lsm
     lsm = Tigger.load(args.sky_model)
@@ -174,7 +183,7 @@ def data(args):
     ms.close()
 
     # Get rest of dimensions
-    n_row, n_freq, n_corr = flag.shape
+    _, n_freq, n_corr = flag.shape
 
     # Raise error if correlation axis too small
     if n_corr != 4:
@@ -190,6 +199,17 @@ def data(args):
 
     # Check dimension
     assert freq.size == n_freq
+
+    # Check for sky-model
+    if args.sky_model == 'MODEL-1.txt':
+        args.sky_model = MODEL_1
+    elif args.sky_model == 'MODEL-4.txt':
+        args.sky_model = MODEL_4
+    elif args.sky_model == 'MODEL-50.txt':
+        args.sky_model = MODEL_50
+    else:
+        raise ValueError(f"Sky-model {args.sky_model} not in "\
+            + "kalcal/datasets/sky_model/")
 
     # Build source model from lsm
     lsm = Tigger.load(args.sky_model)
@@ -439,7 +459,7 @@ def both(args):
     ms.close()
 
     # Get rest of dimensions
-    n_row, n_freq, n_corr = flag.shape
+    _, n_freq, n_corr = flag.shape
 
     # Raise error if correlation axis too small
     if n_corr != 4:
@@ -455,6 +475,17 @@ def both(args):
 
     # Check dimension
     assert freq.size == n_freq
+
+    # Check for sky-model
+    if args.sky_model == 'MODEL-1.txt':
+        args.sky_model = MODEL_1
+    elif args.sky_model == 'MODEL-4.txt':
+        args.sky_model = MODEL_4
+    elif args.sky_model == 'MODEL-50.txt':
+        args.sky_model = MODEL_50
+    else:
+        raise NotImplemented(f"Sky-model {args.sky_model} not in "\
+            + "kalcal/datasets/sky_model/")
 
     # Build source model from lsm
     lsm = Tigger.load(args.sky_model)

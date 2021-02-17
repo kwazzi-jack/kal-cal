@@ -40,6 +40,3 @@ def append(args, other, index=0):
         parameters.append(option)
 
     return parameters
-
-
-def temp_folder(tmp_path_factory):

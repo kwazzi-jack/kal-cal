@@ -26,5 +26,5 @@ def create_ms(args):
         nchan=args.nchan,
         dfreq=args.dfreq,
         stokes=args.stokes,
-        scan_length=args.synthesis,
+        scan_length=[args.synthesis],
         nolog=True)

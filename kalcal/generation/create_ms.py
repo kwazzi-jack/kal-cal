@@ -1,5 +1,5 @@
 from simms import simms
-from kalcal.datasets import KAT7
+from kalcal.datasets.antenna_tables import KAT7
 
 
 def create_ms(args):

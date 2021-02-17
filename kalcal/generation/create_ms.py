@@ -8,7 +8,7 @@ def create_ms(args):
     
     # Check for antenna table selected
     if args.pos == 'kat-7.itrf.txt':
-        args.pos = KAT7_ANT_TABLE
+        args.pos = KAT7
     else:
         raise NotImplemented("Only kat-7 table is supported")
 

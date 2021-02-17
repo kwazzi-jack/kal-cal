@@ -1,37 +1,35 @@
+#from kalcal.filters import ekf, iekf, enkf
+#from kalcal.smoothers import eks
+#from kalcal.tools.utils import gains_reshape, gains_vector
+from kalcal.generation import parser
+from kalcal.generation import generate
+from kalcal.generation.create_ms import create_ms
+#from kalcal.generation import cleaner, loader
+#from kalcal.plotting.multiplot import plot_time
+
 import matplotlib.pyplot as plt
 import numpy as np
-from filters import ekf, iekf, enkf
-from smoothers import eks
-from tools.utils import gains_reshape, gains_vector
-from generation import parser
-from generation import generate
-from generation.create_ms import create_ms
-from generation import cleaner, loader
-from plotting.multiplot import plot_time
-import matplotlib.pyplot as plt
-import packratt
-
+from os import path
 
 def main():   
-
-    # Get ms via packratt
-    packratt.get('/MSC_DATA/MS/KAT7_200_7_1.tar.gz', 'datasets/ms/')
-
     # Get configurations from yaml
     yaml_args = parser.yaml_parser('config.yml')
     ms_args = yaml_args['create_ms']
     gen_args = yaml_args['generate']    
 
     # Create measurement set
-    #create_ms(ms_args)
-
-    # Create jones & model data
-    gen_args.ms = 'datasets/ms/KAT7_200_7_1.MS'
-    gen_args.out = 'datasets/gains/normal.npy'    
+    if path.isdir(ms_args.msname):
+        s = input(f"==> {ms_args.msname} exists, "\
+                + "continue with `create_ms`? (y/n) ")
+        
+        if s == 'y':
+            create_ms(ms_args) 
+    else:
+        create_ms(ms_args)  
     
     # Generate jones and data
-    generate.both(gen_args)
-
+    generate.data(gen_args)
+    
     tbin_indices, tbin_counts, ant1, ant2,\
             vis, model, weight, jones = loader.get_data(gen_args)    
 

@@ -2,7 +2,7 @@ import numpy as np
 from africanus.calibration.utils import chunkify_rows
 import dask.array as da
 from daskms import xds_from_table
-from final.tools.utils import concat_dir_axis
+from kalcal.tools.utils import concat_dir_axis
 
 def get_data(args, fmt='numpy'):
     """ Load gains and ms data from generate.py
@@ -34,7 +34,7 @@ def get_data(args, fmt='numpy'):
 
     # Gains name
     if args.out == '':
-        args.out = f"datasets/gains/{args.mode}.npy"  
+        args.out = f"{args.mode}.npy"  
     
     # Load gains data
     jones = None

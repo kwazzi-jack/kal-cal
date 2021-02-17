@@ -1,4 +1,4 @@
-from .plotops import gains_magnitude_time
+from kalcal.plotting.plotops import gains_magnitude_time
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 import numpy as np

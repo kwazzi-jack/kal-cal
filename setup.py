@@ -22,7 +22,8 @@ requirements = [
     "scipy>=1.5.4",
     "simms>=1.2.0",
     "Tigger>=0.1.1",
-    "xarray>=0.16.2"
+    "xarray>=0.16.2",
+    "tqdm>=4.56.0"
 ]
 
 setuptools.setup(

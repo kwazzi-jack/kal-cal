@@ -1,0 +1,27 @@
+$schema: http://json-schema.org/draft-07/schema
+definitions:
+  entry:
+    type: 'object'
+    properties:
+      type: { enum: ['url', 'google'] }
+      hash: { type: 'string' }
+      url: { type: 'string' }      # required for 'url' type
+      file_id: { type: 'string' }  # required for 'google' type
+    required: ['type', 'hash']
+    anyOf:
+    # url property required if type is url
+    - properties:
+        type: { const: 'url' }
+      required: ['url']
+    # file_id property required if type is goodle
+    - properties:
+        type: { const: 'google' }
+      required: ['file_id']
+
+  registry:
+    # Arbitrary keys of entry's
+    type: 'object'
+    patternProperties: {
+      "^.*$": {"$ref": "#/definitions/entry"}
+    }
+    additionalProperties: false

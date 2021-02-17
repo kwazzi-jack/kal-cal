@@ -1,0 +1,21 @@
+'/test/ms/2020-06-04/google/smallest_ms.tar.gz':
+  type: google
+  file_id: 1wjZoh7OAIVEjYuTmg9dLAFiLoyehnIcL
+  hash: 9d6379b5ad01a1fe6ec218d4e58e4620fa80ff9820f4f54bf185d86496f3456c
+  description: >
+    Small testing Measurement Set, stored on Google Drive
+
+'/test/ms/2020-06-04/elwood/smallest_ms.tar.gz':
+  type: url
+  url: ftp://elwood.ru.ac.za/pub/sjperkins/data/test/smallest_ms.tar.gz
+  hash: 9d6379b5ad01a1fe6ec218d4e58e4620fa80ff9820f4f54bf185d86496f3456c
+  description: >
+    Small testing Measurement Set, stored on elwood's FTP server
+
+'/test/ms/2020-06-04/elwood/smallest_ms_truncated.tar.gz':
+  type: url
+  url: ftp://elwood.ru.ac.za/pub/sjperkins/data/test/smallest_ms_truncated.tar.gz
+  hash: 0ddef067c03139ecff4d97724e4d5fac6ab56e0eff79a2f6a8cb985c4fe06601
+  description: >
+    Small testing Measurement Set, stored on elwood's FTP server,
+    truncated at 100,000 bytes

@@ -1,0 +1,3 @@
+[console_scripts]
+pdu = pdu.__main__:main
+

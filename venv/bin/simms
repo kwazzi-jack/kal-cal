@@ -1,0 +1,5 @@
+#!/home/brian/Code/kal-cal/venv/bin/python3
+
+from simms.simms import main
+
+main()

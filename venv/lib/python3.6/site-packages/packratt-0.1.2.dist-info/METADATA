@@ -1,0 +1,23 @@
+Metadata-Version: 2.1
+Name: packratt
+Version: 0.1.2
+Summary: UNKNOWN
+Home-page: UNKNOWN
+Author: Simon Perkins
+Author-email: simon.perkins@gmail.com
+License: UNKNOWN
+Platform: UNKNOWN
+Requires-Python: ==3.*,>=3.6.0
+Requires-Dist: appdirs (==1.*,>=1.4.4)
+Requires-Dist: jsonschema (==3.*,>=3.2.0)
+Requires-Dist: pyyaml (==5.*,>=5.3.1)
+Requires-Dist: requests (==2.*,>=2.23.0)
+Provides-Extra: dev
+Requires-Dist: pylint (==2.*,>=2.5.3) ; extra == 'dev'
+Provides-Extra: testing
+Requires-Dist: pytest[testing] (==5.*,>=5.2.0,>=5.4.2) ; extra == 'testing'
+Requires-Dist: pytest-flake8[testing] (==1.*,>=1.0.6) ; extra == 'testing'
+
+UNKNOWN
+
+

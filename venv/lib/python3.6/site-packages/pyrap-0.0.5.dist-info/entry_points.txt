@@ -1,0 +1,3 @@
+[console_scripts]
+pyrap = pyrap.__main__:main
+

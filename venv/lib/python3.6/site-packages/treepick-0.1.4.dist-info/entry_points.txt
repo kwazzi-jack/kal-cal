@@ -1,0 +1,3 @@
+[console_scripts]
+treepick = treepick.__main__:main
+

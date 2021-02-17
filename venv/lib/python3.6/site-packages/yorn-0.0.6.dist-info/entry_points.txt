@@ -1,0 +1,3 @@
+[console_scripts]
+yorn = yorn.__main__:main
+

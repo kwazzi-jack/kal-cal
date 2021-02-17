@@ -2,10 +2,10 @@ import numpy as np
 from numba import njit
 import pytest
 
-from final.tests.mock import shell
-from final.tests.mock import full
-from final.tests.mock import params
-from final.tools.jacobian import (compute_aug_coo, 
+from kalcal.mocktools import shell
+from kalcal.mocktools import full
+from kalcal.mocktools import params
+from kalcal.tools.jacobian import (compute_aug_coo, 
     compute_aug_csr, compute_aug_np)
 
 

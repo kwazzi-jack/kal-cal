@@ -20,7 +20,7 @@ def create_ms_parser():
 
     # Antenna table position
     p.add_argument("--pos", help="Antenna table position.", 
-                    type=str, default='kat-7_antenna_table')
+                    type=str, default='kat-7.itrf.txt')
 
     # Declination of MS
     p.add_argument("--dec", help="Declination position of MS.", 
@@ -35,7 +35,7 @@ def create_ms_parser():
                     default=5, type=int)
 
     # Integration Time
-    p.add_argument("--dtime", type=int, default=30, 
+    p.add_argument("--dtime", type=int, default=90, 
                     help="Integration time in seconds.")
     
     # Initial Frequency

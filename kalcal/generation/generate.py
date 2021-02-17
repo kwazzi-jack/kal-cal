@@ -68,7 +68,7 @@ def jones(args):
     ms.close()
 
     # Get rest of dimensions
-    _, n_freq, n_corr = flag.shape
+    n_row, n_freq, n_corr = flag.shape
 
     # Raise error if correlation axis too small
     if n_corr != 4:
@@ -132,7 +132,7 @@ def jones(args):
 
     # Generate filename
     if args.out == "":
-        args.out = f"datasets/gains/{args.mode}.npy"
+        args.out = f"{args.mode}.npy"
 
     # Save gains and settings to file
     with open(args.out, 'wb') as file:        
@@ -183,7 +183,7 @@ def data(args):
     ms.close()
 
     # Get rest of dimensions
-    _, n_freq, n_corr = flag.shape
+    n_row, n_freq, n_corr = flag.shape
 
     # Raise error if correlation axis too small
     if n_corr != 4:
@@ -284,7 +284,7 @@ def data(args):
     # Retrieve gains
     jones = None        
     if args.out == '':
-        args.out = f"datasets/gains/{args.mode}.npy"
+        args.out = f"{args.mode}.npy"
 
     with open(args.out, 'rb') as file:
         jones = np.load(file)
@@ -459,7 +459,7 @@ def both(args):
     ms.close()
 
     # Get rest of dimensions
-    _, n_freq, n_corr = flag.shape
+    n_row, n_freq, n_corr = flag.shape
 
     # Raise error if correlation axis too small
     if n_corr != 4:
@@ -582,7 +582,7 @@ def both(args):
 
     # Generate filename
     if args.out == "":
-        args.out = f"datasets/gains/{args.mode}.npy"
+        args.out = f"{args.mode}.npy"
 
     # Save gains and settings to file
     with open(args.out, 'wb') as file:        

@@ -1,11 +1,11 @@
-#from kalcal.filters import ekf, iekf, enkf
-#from kalcal.smoothers import eks
-#from kalcal.tools.utils import gains_reshape, gains_vector
+from kalcal.filters import ekf, iekf, enkf
+from kalcal.smoothers import eks
+from kalcal.tools.utils import gains_reshape, gains_vector
 from kalcal.generation import parser
 from kalcal.generation import generate
 from kalcal.generation.create_ms import create_ms
-#from kalcal.generation import cleaner, loader
-#from kalcal.plotting.multiplot import plot_time
+from kalcal.generation import loader
+from kalcal.plotting.multiplot import plot_time
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -28,8 +28,16 @@ def main():
         create_ms(ms_args)  
     
     # Generate jones and data
-    generate.data(gen_args)
-    
+    if path.isfile(gen_args.out):
+        s = input(f"==> {gen_args.out} exists, "\
+                + "continue with `generate`? (y/n) ")
+        
+        if s == 'y':
+            generate.both(gen_args) 
+    else:
+        generate.both(gen_args) 
+
+    # Load ms and gains data
     tbin_indices, tbin_counts, ant1, ant2,\
             vis, model, weight, jones = loader.get_data(gen_args)    
 

@@ -2,10 +2,10 @@
 
 # Settings for simms to generate a new empty measurement set.
 create_ms:
-  msname: 'datasets/ms/KAT7_200_7_1.MS' 
+  msname: 'KAT7_200_7_1.MS' 
   tel: 'kat-7'
   pos_type: 'ascii'
-  pos: 'datasets/antenna_tables/kat-7.itrf.txt'
+  pos: 'kat-7.itrf.txt'
   dec: ' -30d0m0s' 
   ra: '0h0m0s'    
   synthesis: 5
@@ -19,9 +19,9 @@ create_ms:
 # Settings for generate.py to produce gains, model and vis data
 # with a given ms.
 generate:
-  ms: 'datasets/ms/KAT7_200_7_1.MS'
+  ms: 'KAT7_200_7_1.MS'
   mode: 'normal'
-  sky_model: 'datasets/sky_models/MODEL-1.txt'
+  sky_model: 'MODEL-1.txt'
   utimes_per_chunk: 1
   ncpu: 8
   alpha_std: 0.1
@@ -31,4 +31,4 @@ generate:
   ls: 0.5
   sigma_f: 1.0
   phase_convention: "CODEX"
-  out: ""
+  out: "normal.npy"

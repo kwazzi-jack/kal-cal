@@ -1,21 +1,7 @@
 import numpy as np
-
-from final.generation import loader, parser
-from final.generation.generate import generate
-from final.tests.mock.shell import shell_params as shell_params_out
+from kalcal.generation import loader, parser
+from kalcal.generation.generate import generate
 import packratt
-
-
-def params(
-    n_time,
-    n_ant,
-    n_chan,
-    n_dir
-):
-    """Create all possible dimension combinations
-    with the given input lists."""
-
-    return shell_params_out(n_time, n_ant, n_chan, n_dir)
 
 
 def full(

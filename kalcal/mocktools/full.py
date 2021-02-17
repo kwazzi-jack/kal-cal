@@ -1,6 +1,6 @@
 import numpy as np
 from kalcal.generation import loader, parser
-from kalcal.generation.generate import generate
+from kalcal.generation import generate
 import packratt
 
 

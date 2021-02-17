@@ -11,8 +11,9 @@ def create_ms(args):
         args.pos = KAT7
     else:
         raise NotImplemented("Only kat-7 table is supported")
-
-    # Create empty measurment set    
+    
+    # Create empty measurment set  
+    print(f"==> Creating empty ms: {args.msname}")  
     simms.create_empty_ms(
         msname=args.msname,
         tel=args.tel,

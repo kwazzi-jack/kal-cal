@@ -114,7 +114,7 @@ def jones(args):
 
     # Generate gains
     jones = None
-    print(' -- JONES ONLY --')
+    print('==> Jones-only mode')
     if args.mode == "phase":
         jones = phase_gains(lm, freq, n_time, n_ant, args.alpha_std)
 
@@ -133,10 +133,12 @@ def jones(args):
     # Generate filename
     if args.out == "":
         args.out = f"{args.mode}.npy"
-
+  
     # Save gains and settings to file
     with open(args.out, 'wb') as file:        
         np.save(file, jones)
+
+    print(f"==> Created Jones data: {args.out}")
 
 
 def data(args):
@@ -404,9 +406,11 @@ def data(args):
     write = xds_to_table(xds, args.ms, out_names)
 
     # Submit all graph computations in parallel
-    print(' -- DATA ONLY --')
+    print('==> Data-only mode')
     with ProgressBar():
         write.compute()
+
+    print(f"==> Applied Jones to MS: {args.ms} <--> {args.out}")
 
 
 def both(args):
@@ -560,7 +564,7 @@ def both(args):
     # Generate gains
     jones = None
     jones_shape = None
-    print(' -- JONES --')
+    print('==> Both-mode')
     if args.mode == "phase":
         jones = phase_gains(lm, freq, n_time, n_ant, args.alpha_std)
 
@@ -587,7 +591,6 @@ def both(args):
     # Save gains and settings to file
     with open(args.out, 'wb') as file:        
         np.save(file, jones)
-
 
     # Build dask graph
     freq = da.from_array(freq, chunks=freq.shape)
@@ -702,11 +705,7 @@ def both(args):
     write = xds_to_table(xds, args.ms, out_names)
 
     # Submit all graph computations in parallel
-    print(' -- DATA --')
     with ProgressBar():
         write.compute()
 
-
-if __name__ == "__main__":
-    args = generate_parser().parse_args()
-    both(args)
+    print(f"==> Applied Jones to MS: {args.ms} <--> {args.out}")

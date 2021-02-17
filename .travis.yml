@@ -1,0 +1,14 @@
+# Travis CI settings
+language: python
+
+# Version
+python:
+  - "3.6"
+  
+# Install dependencies
+install:
+  - pip install -r requirements.txt
+
+# Run tests
+script:
+  - pytest tests/

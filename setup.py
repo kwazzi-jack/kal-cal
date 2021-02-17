@@ -23,7 +23,8 @@ requirements = [
     "simms>=1.2.0",
     "Tigger>=0.1.1",
     "xarray>=0.16.2",
-    "tqdm>=4.56.0"
+    "tqdm>=4.56.0",
+    "packratt==0.1.2"
 ]
 
 setuptools.setup(

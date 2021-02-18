@@ -1,2 +1,5 @@
 # Ignore pycache
 **/__pycache__
+
+# Egg-info
+**/kal_cal.egg-info

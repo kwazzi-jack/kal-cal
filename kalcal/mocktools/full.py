@@ -2,9 +2,10 @@ import numpy as np
 from kalcal.generation import loader, parser
 from kalcal.generation import generate
 import packratt
+from os import path
 
 
-def full(
+def data(
     n_time, 
     n_ant, 
     n_chan, 
@@ -19,10 +20,10 @@ def full(
     and gains file to simulate physical data."""
 
     # Set the seed
-    np.seed(seed)
+    np.random.seed(seed)
 
     # MS name and packratt get name
-    msname = f'dataset/ms/KAT7_{n_time}_{n_ant}_{n_chan}.MS'
+    msname = path.join(dest, f'KAT7_{n_time}_{n_ant}_{n_chan}.MS')
     pullname = f'/MSC_DATA/MS/KAT7_{n_time}_{n_ant}_{n_chan}.tar.gz'
 
     # Get ms via packratt
@@ -32,7 +33,7 @@ def full(
     gen_args = parser.generate_parser().parse_args([])
     lt, lnu, ls = len_scales
     gen_args.ms = msname
-    gen_args.sky_model = f'datasets/sky_models/MODEL-{n_dir}.txt'
+    gen_args.sky_model = f'MODEL-{n_dir}.txt'
     gen_args.sigma_n = sigma_n    
     gen_args.lt = lt
     gen_args.lnu = lnu

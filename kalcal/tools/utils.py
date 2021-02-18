@@ -10,6 +10,7 @@ def concat_dir_axis(ms):
 
     sources = []
     i = 0
+    
     while True:
         try:
             source = ms.get(f'J{i}').data

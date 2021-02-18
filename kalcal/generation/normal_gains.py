@@ -9,7 +9,8 @@ def normal_gains(t, nu, s, n_ant, n_corr, sigmaf, lt, lnu, ls):
 
     # Dask to NP
     t = t.compute()
-    
+    nu = nu.compute()
+
     # Scale down domain
     t = t/t.max()    
     nu = nu/nu.max()

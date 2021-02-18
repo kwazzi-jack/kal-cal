@@ -2,7 +2,7 @@ from casacore.tables import table
 import Tigger
 import dask.array as da
 from dask.diagnostics import ProgressBar
-from daskms import xds_from_ms, xds_to_table
+from daskms import xds_from_ms, xds_to_table, xds_from_table
 from africanus.dft.dask import im_to_vis
 from africanus.coordinates import radec_to_lm
 from africanus.calibration.utils import chunkify_rows
@@ -32,10 +32,10 @@ def jones(args):
         args.ncpu = multiprocessing.cpu_count()
 
     # Get full time column and compute row chunks
-    ms = table(args.ms)
-    time = ms.getcol('TIME')
+    ms = xds_from_table(args.ms)[0]
+   
     _, tbin_idx, tbin_counts = chunkify_rows(
-        time, args.utimes_per_chunk)
+        ms.TIME, args.utimes_per_chunk)
     
     # Convert time rows to dask arrays
     tbin_idx = da.from_array(tbin_idx, 
@@ -47,25 +47,22 @@ def jones(args):
     n_time = tbin_idx.size
 
     # Get antenna columns
-    ant1 = ms.getcol('ANTENNA1')
-    ant2 = ms.getcol('ANTENNA2')
+    ant1 = ms.ANTENNA1.data
+    ant2 = ms.ANTENNA2.data
 
     # No. of antennas axis
-    n_ant = np.maximum(ant1.max(), ant2.max()) + 1
+    n_ant = (np.maximum(ant1.max(), ant2.max()) + 1).compute()
 
     # Get flag column
-    flag = ms.getcol("FLAG")
+    flag = ms.FLAG.data
 
     # Get convention
     if args.phase_convention == 'CASA':
-        uvw = -ms.getcol('UVW').astype(np.float64)
+        uvw = -(ms.UVW.data.astype(np.float64))
     elif args.phase_convention == 'CODEX':
-        uvw = ms.getcol('UVW').astype(np.float64)
+        uvw = ms.UVW.data.astype(np.float64)
     else:
         raise ValueError("Unknown sign convention for phase")
-
-    # Close ms
-    ms.close()
 
     # Get rest of dimensions
     n_row, n_freq, n_corr = flag.shape
@@ -76,11 +73,12 @@ def jones(args):
             + "currently supported")
 
     # Get phase direction
-    radec0 = table(args.ms+'::FIELD').getcol('PHASE_DIR').squeeze()
-
+    radec0_table = xds_from_table(args.ms+'::FIELD')[0]
+    radec0 = radec0_table.PHASE_DIR.data.squeeze().compute()
+    
     # Get frequency column
-    freq = table(args.ms+'::SPECTRAL_WINDOW').getcol(
-            'CHAN_FREQ')[0].astype(np.float64)
+    freq_table = xds_from_table(args.ms+'::SPECTRAL_WINDOW')[0]
+    freq = freq_table.CHAN_FREQ.data.astype(np.float64)[0]
 
     # Check dimension
     assert freq.size == n_freq
@@ -155,10 +153,10 @@ def data(args):
         args.ncpu = multiprocessing.cpu_count()
 
     # Get full time column and compute row chunks
-    ms = table(args.ms)
-    time = ms.getcol('TIME')
+    ms = xds_from_table(args.ms)[0]
+   
     row_chunks, tbin_idx, tbin_counts = chunkify_rows(
-        time, args.utimes_per_chunk)
+        ms.TIME, args.utimes_per_chunk)
     
     # Convert time rows to dask arrays
     tbin_idx = da.from_array(tbin_idx, 
@@ -166,23 +164,26 @@ def data(args):
     tbin_counts = da.from_array(tbin_counts, 
                     chunks=(args.utimes_per_chunk))
 
-    # Get antenna columns
-    ant1 = ms.getcol('ANTENNA1')
-    ant2 = ms.getcol('ANTENNA2')
+    # Time axis
+    n_time = tbin_idx.size
 
+    # Get antenna columns
+    ant1 = ms.ANTENNA1.data
+    ant2 = ms.ANTENNA2.data
+
+    # No. of antennas axis
+    n_ant = (np.maximum(ant1.max(), ant2.max()) + 1).compute()
+    
     # Get flag column
-    flag = ms.getcol("FLAG")
+    flag = ms.FLAG.data
 
     # Get convention
     if args.phase_convention == 'CASA':
-        uvw = -ms.getcol('UVW').astype(np.float64)
+        uvw = -(ms.UVW.data.astype(np.float64))
     elif args.phase_convention == 'CODEX':
-        uvw = ms.getcol('UVW').astype(np.float64)
+        uvw = ms.UVW.data.astype(np.float64)
     else:
         raise ValueError("Unknown sign convention for phase")
-
-    # Close ms
-    ms.close()
 
     # Get rest of dimensions
     n_row, n_freq, n_corr = flag.shape
@@ -193,11 +194,12 @@ def data(args):
             + "currently supported")
 
     # Get phase direction
-    radec0 = table(args.ms+'::FIELD').getcol('PHASE_DIR').squeeze()
+    radec0_table = xds_from_table(args.ms+'::FIELD')[0]
+    radec0 = radec0_table.PHASE_DIR.data.squeeze().compute()
 
     # Get frequency column
-    freq = table(args.ms+'::SPECTRAL_WINDOW').getcol(
-            'CHAN_FREQ')[0].astype(np.float64)
+    freq_table = xds_from_table(args.ms+'::SPECTRAL_WINDOW')[0]
+    freq = freq_table.CHAN_FREQ.data.astype(np.float64)[0]
 
     # Check dimension
     assert freq.size == n_freq
@@ -294,7 +296,6 @@ def data(args):
     jones_shape = jones.shape
 
     # Build dask graph
-    freq = da.from_array(freq, chunks=freq.shape)
     lm = da.from_array(lm, chunks=lm.shape)
     model = da.from_array(model, chunks=model.shape)
     jones_da = da.from_array(jones, chunks=(args.utimes_per_chunk,)
@@ -427,10 +428,10 @@ def both(args):
         args.ncpu = multiprocessing.cpu_count()
 
     # Get full time column and compute row chunks
-    ms = table(args.ms)
-    time = ms.getcol('TIME')
+    ms = xds_from_table(args.ms)[0]
+   
     row_chunks, tbin_idx, tbin_counts = chunkify_rows(
-        time, args.utimes_per_chunk)
+        ms.TIME, args.utimes_per_chunk)
     
     # Convert time rows to dask arrays
     tbin_idx = da.from_array(tbin_idx, 
@@ -442,25 +443,22 @@ def both(args):
     n_time = tbin_idx.size
 
     # Get antenna columns
-    ant1 = ms.getcol('ANTENNA1')
-    ant2 = ms.getcol('ANTENNA2')
+    ant1 = ms.ANTENNA1.data
+    ant2 = ms.ANTENNA2.data
 
     # No. of antennas axis
-    n_ant = np.maximum(ant1.max(), ant2.max()) + 1
+    n_ant = (np.maximum(ant1.max(), ant2.max()) + 1).compute()
 
     # Get flag column
-    flag = ms.getcol("FLAG")
+    flag = ms.FLAG.data
 
     # Get convention
     if args.phase_convention == 'CASA':
-        uvw = -ms.getcol('UVW').astype(np.float64)
+        uvw = -(ms.UVW.data.astype(np.float64))
     elif args.phase_convention == 'CODEX':
-        uvw = ms.getcol('UVW').astype(np.float64)
+        uvw = ms.UVW.data.astype(np.float64)
     else:
         raise ValueError("Unknown sign convention for phase")
-
-    # Close ms
-    ms.close()
 
     # Get rest of dimensions
     n_row, n_freq, n_corr = flag.shape
@@ -471,11 +469,12 @@ def both(args):
             + "currently supported")
 
     # Get phase direction
-    radec0 = table(args.ms+'::FIELD').getcol('PHASE_DIR').squeeze()
+    radec0_table = xds_from_table(args.ms+'::FIELD')[0]
+    radec0 = radec0_table.PHASE_DIR.data.squeeze().compute()
 
     # Get frequency column
-    freq = table(args.ms+'::SPECTRAL_WINDOW').getcol(
-            'CHAN_FREQ')[0].astype(np.float64)
+    freq_table = xds_from_table(args.ms+'::SPECTRAL_WINDOW')[0]
+    freq = freq_table.CHAN_FREQ.data.astype(np.float64)[0]
 
     # Check dimension
     assert freq.size == n_freq
@@ -593,7 +592,6 @@ def both(args):
         np.save(file, jones)
 
     # Build dask graph
-    freq = da.from_array(freq, chunks=freq.shape)
     lm = da.from_array(lm, chunks=lm.shape)
     model = da.from_array(model, chunks=model.shape)
     jones_da = da.from_array(jones, chunks=(args.utimes_per_chunk,)
@@ -613,7 +611,7 @@ def both(args):
 
     # Adjust UVW based on phase-convention
     if args.phase_convention == 'CASA':
-        uvw = -xds.UVW.data.astype(np.float64)
+        uvw = -xds.UVW.data.astype(np.float64)       
     elif args.phase_convention == 'CODEX':
         uvw = xds.UVW.data.astype(np.float64)
     else:
@@ -623,7 +621,7 @@ def both(args):
     # Get model visibilities
     model_vis = np.zeros((n_row, n_freq, n_dir, n_corr), 
                             dtype=np.complex128)    
-    
+
     for s in range(n_dir):
         model_vis[:, :, s] = im_to_vis(
             model[s].reshape((1, n_freq, n_corr)),

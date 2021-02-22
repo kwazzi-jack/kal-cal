@@ -49,6 +49,3 @@ setuptools.setup(
     test_suite='tests',
     install_requires=requirements
 )
-
-from kalcal.datasets import adjust
-adjust.packratt_registry_append()

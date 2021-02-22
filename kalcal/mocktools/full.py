@@ -1,8 +1,9 @@
 import numpy as np
 from kalcal.generation import loader, parser
 from kalcal.generation import generate
-import packratt
 from os import path
+import tarfile
+from pkg_resources import resource_filename
 
 
 def data(
@@ -22,12 +23,16 @@ def data(
     # Set the seed
     np.random.seed(seed)
 
-    # MS name and packratt get name
+    # MS name and tar-file name
     msname = path.join(dest, f'KAT7_{n_time}_{n_ant}_{n_chan}.MS')
-    pullname = f'/MSC_DATA/MS/KAT7_{n_time}_{n_ant}_{n_chan}.tar.gz'
+    tarname = f'KAT7_{n_time}_{n_ant}_{n_chan}.tar.gz'
 
-    # Get ms via packratt
-    packratt.get(pullname, dest)
+    tarpath = resource_filename('kalcal', 
+            path.join('datasets/ms/', tarname))
+
+    # Untar the file
+    with tarfile.open(tarpath, 'r:gz') as file:
+        file.extractall(dest) 
 
     # Create generate parser
     gen_args = parser.generate_parser().parse_args([])

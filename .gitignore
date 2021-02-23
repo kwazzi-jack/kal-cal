@@ -3,3 +3,6 @@
 
 # Egg-info
 **/kal_cal.egg-info
+
+# .pyc files
+*.pyc

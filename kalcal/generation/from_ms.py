@@ -1,4 +1,3 @@
-from casacore.tables import table
 import Tigger
 import dask.array as da
 from dask.diagnostics import ProgressBar

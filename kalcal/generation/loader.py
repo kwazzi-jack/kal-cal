@@ -4,7 +4,8 @@ import dask.array as da
 from daskms import xds_from_table
 from kalcal.tools.utils import concat_dir_axis
 
-def get_data(args, fmt='numpy'):
+
+def get(args, fmt='numpy'):
     """ Load gains and ms data from generate.py
     args."""
 

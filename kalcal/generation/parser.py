@@ -58,8 +58,8 @@ def create_ms_parser():
     return p
 
 
-def generate_parser():
-    """Parser object for settings of generate.py."""
+def from_ms_parser():
+    """Parser object for settings of from_ms.py."""
     p = argparse.ArgumentParser()
     
     # Measurement Set
@@ -130,29 +130,29 @@ def yaml_parser(filename):
             # Read yaml file
             config = yaml.load(file, Loader=yaml.FullLoader)
 
-            # Create generate parser and fill with settings from
-            # config file
-            gen_par = generate_parser()
-            cmdline = []
-            for key, val in config['generate'].items():
-                cmdline.append(f"--{key}")
-                cmdline.append(str(val))
-
-            # Create new args 
-            gen_args = gen_par.parse_args(cmdline)
-
             # Create create ms parser and fill with settings from
             # config file
-            ms_par = create_ms_parser()
+            cms_par = create_ms_parser()
             cmdline = []
             for key, val in config['create_ms'].items():
                 cmdline.append(f"--{key}")
                 cmdline.append(str(val))
 
             # Create new args 
-            ms_args = ms_par.parse_args(cmdline)
+            cms_args = cms_par.parse_args(cmdline)
 
-            return {'create_ms' : ms_args, 
-                        'generate' : gen_args}
+            # Create from ms parser and fill with settings from
+            # config file
+            fms_par = from_ms_parser()
+            cmdline = []
+            for key, val in config['from_ms'].items():
+                cmdline.append(f"--{key}")
+                cmdline.append(str(val))
+
+            # Create new args 
+            fms_args = fms_par.parse_args(cmdline)            
+
+            return {'create_ms' : cms_args, 
+                        'from_ms' : fms_args}
     except:
         raise IOError('Config-file does not exist.')

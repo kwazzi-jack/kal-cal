@@ -2,7 +2,7 @@ from simms import simms
 from kalcal.datasets.antenna_tables import KAT7
 
 
-def create_ms(args):
+def new(args):
     """Create a new empty measurement set using
     simms, given the arguments parsed."""
     

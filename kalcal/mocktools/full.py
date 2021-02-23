@@ -1,6 +1,6 @@
 import numpy as np
 from kalcal.generation import loader, parser
-from kalcal.generation import generate
+from kalcal.generation import from_params
 from os import path
 import tarfile
 from pkg_resources import resource_filename
@@ -35,7 +35,7 @@ def data(
         file.extractall(dest) 
 
     # Create generate parser
-    gen_args = parser.generate_parser().parse_args([])
+    gen_args = parser.from_ms_parser().parse_args([])
     lt, lnu, ls = len_scales
     gen_args.ms = msname
     gen_args.sky_model = f'MODEL-{n_dir}.txt'
@@ -46,7 +46,8 @@ def data(
     gen_args.sigma_f = sigma_f
     
     # Generate jones and apply corruption to data
-    generate.both(gen_args)
+    from_params.both(gen_args)
+       
 
     # Load the data
     return loader.get_data(gen_args)

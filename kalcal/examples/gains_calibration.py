@@ -2,8 +2,8 @@ from kalcal.filters import ekf, iekf, enkf
 from kalcal.smoothers import eks
 from kalcal.tools.utils import gains_reshape, gains_vector
 from kalcal.generation import parser
-from kalcal.generation import generate
-from kalcal.generation.create_ms import create_ms
+from kalcal.generation import from_ms
+from kalcal.generation import create_ms
 from kalcal.generation import loader
 from kalcal.plotting.multiplot import plot_time
 
@@ -11,35 +11,36 @@ import matplotlib.pyplot as plt
 import numpy as np
 from os import path
 
+
 def main():   
     # Get configurations from yaml
     yaml_args = parser.yaml_parser('config.yml')
-    ms_args = yaml_args['create_ms']
-    gen_args = yaml_args['generate']    
-
+    cms_args = yaml_args['create_ms']
+    fms_args = yaml_args['from_ms'] 
+    
     # Create measurement set
-    if path.isdir(ms_args.msname):
-        s = input(f"==> {ms_args.msname} exists, "\
+    if path.isdir(cms_args.msname):
+        s = input(f"==> {cms_args.msname} exists, "\
                 + "continue with `create_ms`? (y/n) ")
         
         if s == 'y':
-            create_ms(ms_args) 
+            create_ms.new(cms_args) 
     else:
-        create_ms(ms_args)  
+        create_ms.new(cms_args)  
     
     # Generate jones and data
-    if path.isfile(gen_args.out):
-        s = input(f"==> {gen_args.out} exists, "\
+    if path.isfile(fms_args.out):
+        s = input(f"==> {fms_args.out} exists, "\
                 + "continue with `generate`? (y/n) ")
         
         if s == 'y':
-            generate.both(gen_args) 
+            from_ms.both(fms_args) 
     else:
-        generate.both(gen_args) 
+        from_ms.both(fms_args) 
 
     # Load ms and gains data
     tbin_indices, tbin_counts, ant1, ant2,\
-            vis, model, weight, jones = loader.get_data(gen_args)    
+            vis, model, weight, jones = loader.get(fms_args)    
 
     #Get dimension values
     n_time, n_ant, n_chan, n_dir = jones.shape    

@@ -16,9 +16,9 @@ create_ms:
   stokes: "RR RL LR LL"
   
 
-# Settings for generate.py to produce gains, model and vis data
+# Settings for from_ms.py to produce gains, model and vis data
 # with a given ms.
-generate:
+from_ms:
   ms: 'KAT7_200_7_1.MS'
   mode: 'normal'
   sky_model: 'MODEL-1.txt'

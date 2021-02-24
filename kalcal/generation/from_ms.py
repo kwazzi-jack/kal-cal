@@ -457,7 +457,16 @@ def both(args):
         uvw = ms.UVW.data.astype(np.float64)
     else:
         raise ValueError("Unknown sign convention for phase")
+    
+    import matplotlib.pyplot as plt
 
+    t = 21*1
+    u = uvw[:, 0]
+    v = uvw[:, 1]
+    
+    plt.scatter(u, v)
+    plt.show()
+    exit()
     # Get rest of dimensions
     n_row, n_freq, n_corr = flag.shape
 

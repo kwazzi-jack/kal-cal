@@ -457,16 +457,7 @@ def both(args):
         uvw = ms.UVW.data.astype(np.float64)
     else:
         raise ValueError("Unknown sign convention for phase")
-    
-    import matplotlib.pyplot as plt
-
-    t = 21*1
-    u = uvw[:, 0]
-    v = uvw[:, 1]
-    
-    plt.scatter(u, v)
-    plt.show()
-    exit()
+        
     # Get rest of dimensions
     n_row, n_freq, n_corr = flag.shape
 
@@ -570,12 +561,17 @@ def both(args):
     # Generate gains
     jones = None
     jones_shape = None
+
+    # Dask to NP
+    t = tbin_idx.compute()
+    nu = freq.compute()
+
     print('==> Both-mode')
     if args.mode == "phase":
-        jones = phase_gains(lm, freq, n_time, n_ant, args.alpha_std)
+        jones = phase_gains(lm, nu, n_time, n_ant, args.alpha_std)
 
     elif args.mode == "normal":
-        jones = normal_gains(tbin_idx, freq, lm, n_ant, n_corr, 
+        jones = normal_gains(t, nu, lm, n_ant, n_corr, 
                     args.sigma_f, args.lt, args.lnu, args.ls)
     else:
         raise ValueError("Only normal and phase modes available.")

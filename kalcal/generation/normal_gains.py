@@ -7,18 +7,11 @@ from tqdm import tqdm
 def normal_gains(t, nu, s, n_ant, n_corr, sigmaf, lt, lnu, ls):
     """Produce normal complex-gains based on the dimensions given."""
 
-    # Dask to NP
-    t = t.compute()
-    nu = nu.compute()
-
     # Scale down domain
-    t = t/t.max()    
-    nu = nu/nu.max()
+    t = t/t.max() if t.max() !=0 else t    
+    nu = nu/nu.max() if nu.max() != 0 else nu
+    s = s/s.max() if s.max() != 0 else s
 
-    # Catch one-direction case
-    if s.max() != 0:
-        s = s/s.max()
-    
     # Get dimensions
     n_time = t.size
     n_chan = nu.size
@@ -31,6 +24,7 @@ def normal_gains(t, nu, s, n_ant, n_corr, sigmaf, lt, lnu, ls):
 
     # Stack and get cholesky factors
     K = np.array((Kt, Knu, Ks), dtype=object)
+    
     L = kt.kron_cholesky(K)
 
     # Simulate independent gain per antenna and direction

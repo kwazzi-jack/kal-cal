@@ -3,7 +3,7 @@ from daskms import xds_from_table
 import numpy as np
 
 
-TIME_VARS = [1, 10, 50, 100, 200, 500, 1000]
+TIME_VARS = [2, 10, 50, 100, 200, 500, 1000]
 FREQ_VARS = [1, 2, 4, 8, 16, 32]
 
 
@@ -90,3 +90,9 @@ def sel_FREQ(n_chan, full_spw_data):
 
     freq = full_spw_data.CHAN_FREQ.values[0]
     return freq[0:n_chan].astype(np.float64)
+
+
+@pytest.fixture(scope="module")
+def n_ant(sel_ANTENNA):
+    ant1, ant2 = sel_ANTENNA
+    return np.maximum(ant1.max(), ant2.max()) + 1

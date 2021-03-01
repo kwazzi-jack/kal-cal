@@ -13,8 +13,8 @@ from .ms import (sel_PHASE_DIR, sel_FREQ, sel_ANTENNA,
 from .lsm import sel_LSM, n_dir
 
 
-SIGMA_N_VARS = [0.0, 0.001, 0.01, 0.1, 1.0]
-SIGMA_F_VARS = [0.001, 0.01, 0.1, 1.0]
+SIGMA_N_VARS = [0.0, 0.01, 0.1, 1.0]
+SIGMA_F_VARS = [0.01, 0.1, 1.0]
 
 
 @pytest.fixture(params=SIGMA_N_VARS, scope="module")

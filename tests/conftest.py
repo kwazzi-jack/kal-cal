@@ -3,7 +3,7 @@ import os
 from .fixtures.ms import *
 from .fixtures.data import *
 from .fixtures.tools import *
-
+from .fixtures.matrix import *
 
 _dir_path = os.path.dirname(__file__)
 _ms_path = os.path.join(_dir_path, "TESTING_SET.MS")

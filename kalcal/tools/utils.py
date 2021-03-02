@@ -81,6 +81,7 @@ def measure_vector(vis_data, weight, n_ant, n_chan):
 
     for row in range(n_row):
         sqrtW = np.sqrt(weight[row])
+
         for nu in range(n_chan):
             data = vis_data[row, nu]
             row_upper = 2 * n_bl * nu + row % n_bl

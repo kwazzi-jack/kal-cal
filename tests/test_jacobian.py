@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+
 # ~~!~~ TESTS ~~!~~
 
 def test_sparse_coo_properties(jac_coo, jac_shape, jac_nnz):    

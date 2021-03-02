@@ -1,12 +1,12 @@
 from kalcal.filters import ekf, iekf, enkf
 from kalcal.smoothers import eks
-from kalcal.tools.utils import gains_reshape, gains_vector
+from kalcal.tools.utils import diag_cov_reshape, gains_vector, diag_cov_flatten
 from kalcal.generation import parser
 from kalcal.generation import from_ms
 from kalcal.generation import create_ms
 from kalcal.generation import loader
 from kalcal.plotting.multiplot import plot_time
-from kalcal.tools.statistics import sigma_test
+from kalcal.tools.statistics import sigma_test, average
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -46,8 +46,8 @@ def main():
     #Get dimension values
     n_time, n_ant, n_chan, n_dir = jones.shape    
     
-    sigma_f = 0.3
-    sigma_n = 0.1
+    sigma_f = 0.1
+    sigma_n = 0.01
 
     ext_kalman_filter = ekf.numpy_algorithm
     ext_kalman_smoother = eks.numpy_algorithm
@@ -66,12 +66,20 @@ def main():
     ms, Ps, G = ext_kalman_smoother(m, P, Q)
 
     n_states = 2 * n_time * n_ant * n_chan * n_dir
-    S1 = sigma_test(m, jones, P, 1)
-    print(f"==> 1-sigma test ({n_states} states): {np.round(S1*100, 2)} %")
-    S2 = sigma_test(m, jones, P, 2)
-    print(f"==> 2-sigma test ({n_states} states): {np.round(S2*100, 2)} %")
-    S3 = sigma_test(m, jones, P, 3)
-    print(f"==> 3-sigma test ({n_states} states): {np.round(S3*100, 2)} %")
+    F1 = np.mean(sigma_test(m, jones, P, 1))
+    S1 = np.mean(sigma_test(ms, jones, Ps, 1))
+    print(f"==> FILTER | 1-sigma test | {n_states} states : {np.round(F1*100, 2)} %")
+    print(f"==> SMOOTH | 1-sigma test | {n_states} states : {np.round(S1*100, 2)} %")
+
+    F2 = np.mean(sigma_test(m, jones, P, 2))
+    S2 = np.mean(sigma_test(ms, jones, Ps, 2))
+    print(f"==> FILTER | 2-sigma test | {n_states} states : {np.round(F2*100, 2)} %")
+    print(f"==> SMOOTH | 2-sigma test | {n_states} states : {np.round(S2*100, 2)} %")
+
+    F3 = np.mean(sigma_test(m, jones, P, 3))
+    S3 = np.mean(sigma_test(ms, jones, Ps, 3))
+    print(f"==> FILTER | 3-sigma test | {n_states} states : {np.round(F3*100, 2)} %")
+    print(f"==> SMOOTH | 3-sigma test | {n_states} states : {np.round(S3*100, 2)} %")
     
     show = [1, 2, 3]
     plot_time(

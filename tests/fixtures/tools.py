@@ -1,7 +1,5 @@
 import pytest
 import numpy as np
-from .ms import n_time, n_ant, n_chan
-from .lsm import n_dir
 from .data import load_data
 
 

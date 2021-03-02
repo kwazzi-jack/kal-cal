@@ -9,30 +9,8 @@ from africanus.calibration.utils.corrupt_vis import corrupt_vis
 from kalcal.generation.normal_gains import normal_gains
 
 from .ms import (sel_PHASE_DIR, sel_FREQ, sel_ANTENNA,
-                    sel_UVW, n_ant, n_chan, n_row)
-from .lsm import sel_LSM, n_dir
-
-
-SIGMA_N_VARS = [0.0, 0.01, 0.1, 1.0]
-SIGMA_F_VARS = [0.01, 0.1, 1.0]
-
-
-@pytest.fixture(params=SIGMA_N_VARS, scope="module")
-def sigma_n(request):
-
-    return request.param
-
-
-@pytest.fixture(params=SIGMA_F_VARS, scope="module")
-def sigma_f(request):
-
-    return request.param
-
-
-@pytest.fixture(scope="module")
-def length_scales():
-
-    return (0.05, 0.05, 0.5)
+                    sel_UVW)
+from .lsm import sel_LSM
 
 
 @pytest.fixture(scope="module")
@@ -60,7 +38,7 @@ def gen_lm(sel_PHASE_DIR, sel_LSM, n_dir):
     return lm
 
 
-@pytest.fixture(params=None, scope="module")
+@pytest.fixture(scope="module")
 def gen_JONES(gen_time_bin_vars, gen_lm, sel_FREQ, n_ant, 
                 sigma_f, length_scales):
 

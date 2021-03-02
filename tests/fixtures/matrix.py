@@ -1,12 +1,10 @@
 import numpy as np
 import pytest
 
-from .ms import n_ant, n_chan
 from .tools import data_slice
 
 from kalcal.tools.jacobian import (compute_aug_coo, 
     compute_aug_csr, compute_aug_np)
-
 from kalcal.tools.utils import (gains_vector, measure_vector)
 
 

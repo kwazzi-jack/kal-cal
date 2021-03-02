@@ -5,15 +5,12 @@ from kalcal.datasets.sky_models import (MODEL_1,
         MODEL_4)
 
 
-DIR_VARS = [1, 4]
+@pytest.fixture(scope="module")
+def sel_LSM(n_dir):
 
-
-@pytest.fixture(params=DIR_VARS, scope="module")
-def sel_LSM(request):
-
-    if request.param == 1:
+    if n_dir == 1:
         return Tigger.load(MODEL_1)
-    elif request.param == 4:
+    elif n_dir == 4:
         return Tigger.load(MODEL_4)
     else:
         raise ValueError("Only two sky-models present.")

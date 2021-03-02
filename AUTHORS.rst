@@ -5,7 +5,7 @@ Credits
 Main Developer
 ----------------
 
-* Simon Perkins <sperkins@ska.ac.za>
+* Brian Welman <brianallisterwelman@gmail.com>
 
 Contributors
 ------------

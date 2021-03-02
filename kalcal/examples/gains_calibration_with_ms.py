@@ -1,12 +1,12 @@
 from kalcal.filters import ekf, iekf, enkf
 from kalcal.smoothers import eks
-from kalcal.tools.utils import diag_cov_reshape, gains_vector, diag_cov_flatten
+from kalcal.tools.utils import gains_vector
 from kalcal.generation import parser
 from kalcal.generation import from_ms
 from kalcal.generation import create_ms
 from kalcal.generation import loader
 from kalcal.plotting.multiplot import plot_time
-from kalcal.tools.statistics import sigma_test, average
+from kalcal.tools.statistics import sigma_test
 
 import matplotlib.pyplot as plt
 import numpy as np

@@ -1,15 +1,6 @@
 import numpy as np
 
-from kalcal.tools.utils import diag_cov_reshape, measure_vector
-
-
-def average(m):
-
-    n_time, n_ant, n_chan, n_dir, _ = m.shape
-
-    N = 2 * n_time * n_ant * n_chan * n_dir
-
-    return 1/N * np.sum(m)
+from kalcal.tools.utils import diag_cov_reshape
     
 
 def sigma_test(states, true_jones, cov, n):

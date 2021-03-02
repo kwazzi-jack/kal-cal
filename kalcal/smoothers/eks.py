@@ -28,7 +28,7 @@ def numpy_algorithm(
 
     # Run Extended Kalman Smoother with
     # Numpy matrices
-    print("==> Ext. Smoother (NUMPY|JIT):")
+    head = "==> Extended Kalman Smoother (NUMPY|JIT): "
     for k in range(-2, -(n_time + 1), -1):   
          
         # Progress Bar in object-mode
@@ -38,7 +38,7 @@ def numpy_algorithm(
             filled_len = int(round(bar_len*(-k - 1)/float(n_time - 1)))
             bar = u"\u2588" * filled_len + ' '\
                     * (bar_len - filled_len)
-            print("\r%d%%|%s| %d/%d" % ((-k - 1)/total*100, 
+            print("\r%s%d%%|%s| %d/%d" % (head, (-k - 1)/total*100, 
                                             bar, -k - 1, total), end="")
 
         # Predict Step

@@ -63,7 +63,7 @@ def sparse_algorithm(
     
     # Run Extended Kalman Filter with 
     # Sparse matrices
-    print("==> Extended Kalman Filter (SPARSE):")
+    head = "==> Extended Kalman Filter (SPARSE): "
     for k in range(1, n_time): 
 
         # Progress Bar
@@ -72,8 +72,8 @@ def sparse_algorithm(
         filled_len = int(round(bar_len*k/float(n_time - 1)))
         bar = u"\u2588" * filled_len + ' '\
                 * (bar_len - filled_len)
-        print("\r%d%%|%s| %d/%d" % (k/total*100, 
-                                    bar, k, total), end="")
+        print("\r%s%d%%|%s| %d/%d" % (head, k/total*100, 
+                                        bar, k, total), end="")
 
         # Predict Step
         mp = gains_vector(m[k - 1])
@@ -189,7 +189,7 @@ def numpy_algorithm(
     
     # Run Extended Kalman Filter with 
     # Sparse matrices
-    print("==> Extended Kalman Filter (NUMPY|JIT):")
+    head = "==> Extended Kalman Filter (NUMPY|JIT): "
     for k in range(1, n_time): 
         
         # Progress Bar in object-mode
@@ -199,7 +199,7 @@ def numpy_algorithm(
             filled_len = int(round(bar_len*k/float(n_time - 1)))
             bar = u"\u2588" * filled_len + ' '\
                     * (bar_len - filled_len)
-            print("\r%d%%|%s| %d/%d" % (k/total*100, 
+            print("\r%s%d%%|%s| %d/%d" % (head, k/total*100, 
                                         bar, k, total), end="")
         
         # Predict Step

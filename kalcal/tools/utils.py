@@ -112,6 +112,18 @@ def true_gains_vector(m):
     return g
 
 
+@jit(nopython=True, fastmath=True, nogil=True)
+def diag_cov_reshape(P, shape):
+
+    return gains_reshape(np.diag(P), shape).real
+
+    
+@jit(nopython=True, fastmath=True, nogil=True)
+def diag_cov_flatten(P):
+
+    return np.diag(gains_vector(P).real)
+
+
 def state_ensemble(m, C, N=10):
     """Create an ensemble matrix of states, M, by drawing
     N-samples from filter distribution (m, C), joining

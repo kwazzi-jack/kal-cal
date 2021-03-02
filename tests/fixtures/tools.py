@@ -31,7 +31,7 @@ def time_choice(n_time):
 def data_slice(time_choice, load_data):
 
     tbin_indices, tbin_counts, ant1, ant2,\
-            vis, model, weight, jones = load_data
+            clean_vis, vis, model, weight, jones = load_data
 
     k = time_choice
 
@@ -41,6 +41,7 @@ def data_slice(time_choice, load_data):
     
     # Calculate Slices
     row_slice = slice(start, end)
+    clean_slice = clean_vis[row_slice]
     vis_slice = vis[row_slice]
     model_slice = model[row_slice]
     weight_slice = weight[row_slice]
@@ -48,5 +49,5 @@ def data_slice(time_choice, load_data):
     ant2_slice = ant2[row_slice]
     jones_slice = jones[k]
 
-    return (vis_slice, model_slice, weight_slice,
+    return (clean_slice, vis_slice, model_slice, weight_slice,
             ant1_slice, ant2_slice, jones_slice)

@@ -178,16 +178,18 @@ def gen_WEIGHT(n_row):
 
 
 @pytest.fixture(scope="module")
-def load_data(gen_time_bin_vars, sel_ANTENNA,
+def load_data(gen_time_bin_vars, sel_ANTENNA, 
+        reshaped_CLEAN_VIS_DATA,
         gen_VIS_DATA, reshaped_MODEL_DATA,
         gen_WEIGHT, gen_JONES):
 
     tbin_indices, tbin_counts = gen_time_bin_vars       
     ant1, ant2 = sel_ANTENNA
-    vis = gen_VIS_DATA
+    clean_vis = reshaped_CLEAN_VIS_DATA[:, :, 0]
+    vis = gen_VIS_DATA[:, :, 0] #remove correlations
     model = reshaped_MODEL_DATA[:, :, :, 0] #remove correlations
     weight = gen_WEIGHT
+    gen_JONES[:, :, :, :, 1] = gen_JONES[:, :, :, :, 0].conj()
     jones = gen_JONES
-
     return tbin_indices, tbin_counts, ant1, ant2,\
-            vis, model, weight, jones
+            clean_vis, vis, model, weight, jones

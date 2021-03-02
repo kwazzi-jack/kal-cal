@@ -6,6 +6,7 @@ from kalcal.generation import from_ms
 from kalcal.generation import create_ms
 from kalcal.generation import loader
 from kalcal.plotting.multiplot import plot_time
+from kalcal.tools.statistics import sigma_test
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -45,7 +46,7 @@ def main():
     #Get dimension values
     n_time, n_ant, n_chan, n_dir = jones.shape    
     
-    sigma_f = 0.1
+    sigma_f = 0.3
     sigma_n = 0.1
 
     ext_kalman_filter = ekf.numpy_algorithm
@@ -64,6 +65,14 @@ def main():
 
     ms, Ps, G = ext_kalman_smoother(m, P, Q)
 
+    n_states = 2 * n_time * n_ant * n_chan * n_dir
+    S1 = sigma_test(m, jones, P, 1)
+    print(f"==> 1-sigma test ({n_states} states): {np.round(S1*100, 2)} %")
+    S2 = sigma_test(m, jones, P, 2)
+    print(f"==> 2-sigma test ({n_states} states): {np.round(S2*100, 2)} %")
+    S3 = sigma_test(m, jones, P, 3)
+    print(f"==> 3-sigma test ({n_states} states): {np.round(S3*100, 2)} %")
+    
     show = [1, 2, 3]
     plot_time(
         jones, 'True Jones', '-',

@@ -23,7 +23,7 @@ def main():
     
     # Create measurement set
     if path.isdir(cms_args.msname):
-        s = input(f"==> {cms_args.msname} exists, "\
+        s = input(f"==> `{cms_args.msname}` exists, "\
                 + "continue with `create_ms`? (y/n) ")
         
         if s == 'y':
@@ -33,7 +33,7 @@ def main():
     
     # Generate jones and data
     if path.isfile(fms_args.out):
-        s = input(f"==> {fms_args.out} exists, "\
+        s = input(f"==> `{fms_args.out}` exists, "\
                 + "continue with `generate`? (y/n) ")
         
         if s == 'y':
@@ -60,7 +60,7 @@ def main():
 
     Pp = np.eye(mp.size, dtype=np.complex128)
     Q = sigma_f**2 * np.eye(mp.size, dtype=np.complex128)
-    R = sigma_n**2 * np.eye(n_ant * (n_ant - 1) * n_chan, dtype=np.complex128) 
+    R = 2 * sigma_n**2 * np.eye(n_ant * (n_ant - 1) * n_chan, dtype=np.complex128) 
     
     m, P = ext_kalman_filter(mp, Pp, model, vis, weight, Q, R, 
                                 ant1, ant2, tbin_indices, tbin_counts)

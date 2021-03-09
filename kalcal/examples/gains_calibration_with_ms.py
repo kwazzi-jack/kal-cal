@@ -46,8 +46,8 @@ def main():
     #Get dimension values
     n_time, n_ant, n_chan, n_dir = jones.shape    
     
-    sigma_f = 0.1
-    sigma_n = 0.01
+    sigma_f = 1.0
+    sigma_n = 0.1
 
     ext_kalman_filter = ekf.numpy_algorithm
     ext_kalman_smoother = eks.numpy_algorithm
@@ -68,18 +68,18 @@ def main():
     n_states = 2 * n_time * n_ant * n_chan * n_dir
     F1 = np.mean(sigma_test(m, jones, P, 1))
     S1 = np.mean(sigma_test(ms, jones, Ps, 1))
-    print(f"==> FILTER | 1-sigma test | {n_states} states : {np.round(F1*100, 2)} %")
-    print(f"==> SMOOTH | 1-sigma test | {n_states} states : {np.round(S1*100, 2)} %")
+    print(f"==> 1-sigma test | FILTER | {n_states} states : {F1*100:.2f} %")
+    print(f"==> 1-sigma test | SMOOTH | {n_states} states : {S1*100:.2f} %")
 
     F2 = np.mean(sigma_test(m, jones, P, 2))
     S2 = np.mean(sigma_test(ms, jones, Ps, 2))
-    print(f"==> FILTER | 2-sigma test | {n_states} states : {np.round(F2*100, 2)} %")
-    print(f"==> SMOOTH | 2-sigma test | {n_states} states : {np.round(S2*100, 2)} %")
+    print(f"==> 2-sigma test | FILTER | {n_states} states : {F2*100:.2f} %")
+    print(f"==> 2-sigma test | SMOOTH | {n_states} states : {S2*100:.2f} %")
 
     F3 = np.mean(sigma_test(m, jones, P, 3))
     S3 = np.mean(sigma_test(ms, jones, Ps, 3))
-    print(f"==> FILTER | 3-sigma test | {n_states} states : {np.round(F3*100, 2)} %")
-    print(f"==> SMOOTH | 3-sigma test | {n_states} states : {np.round(S3*100, 2)} %")
+    print(f"==> 3-sigma test | FILTER | {n_states} states : {F3*100:.2f} %")
+    print(f"==> 3-sigma test | SMOOTH | {n_states} states : {S3*100:.2f} %")
     
     show = [1, 2, 3]
     plot_time(

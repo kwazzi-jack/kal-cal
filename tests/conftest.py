@@ -11,11 +11,11 @@ _ms_path = os.path.join(_dir_path, "TESTING_SET.MS")
 DECIMALS = 5
 
 ANT_VARS = [7]
-TIME_VARS = [2, 10, 50, 100, 200, 500, 1000]
-FREQ_VARS = [1, 2, 4, 8, 16, 32]
+TIME_VARS = [2, 10, 15, 20, 51, 100]
+FREQ_VARS = [1, 2, 4, 8]
 DIR_VARS = [1, 4]
-SIGMA_N_VARS = [0.0, 0.01, 0.1, 1.0]
-SIGMA_F_VARS = [0.01, 0.1, 1.0]
+SIGMA_N_VARS = [0.1]
+SIGMA_F_VARS = [1.0]
 SCALES = (0.05, 0.05, 0.5)
 
 

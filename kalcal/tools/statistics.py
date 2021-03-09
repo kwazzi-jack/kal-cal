@@ -1,5 +1,4 @@
 import numpy as np
-
 from kalcal.tools.utils import diag_cov_reshape
     
 
@@ -23,6 +22,7 @@ def sigma_test(states, true_jones, cov, n):
                         mu = aug_true_jones[t, a, c, s, i]
                         LB = x - n * std[a, c, s, i]
                         UB = x + n * std[a, c, s, i]
-                        stats[t, a, c, s, i] = ((LB <= mu) & (mu <= UB))
+                        stats[t, a, c, s, i] =\
+                            ((LB <= mu) & (mu <= UB))
         
     return stats

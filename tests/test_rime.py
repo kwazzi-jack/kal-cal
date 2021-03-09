@@ -7,11 +7,9 @@ import pytest
 def test_rime_equation(n_time, n_chan, n_dir, load_data):    
 
     (tbin_indices, tbin_counts, ant1, ant2,
-            clean_vis, vis, model, weight, jones) = load_data
+            clean_vis, _, model, weight, jones) = load_data
     
     for t in range(n_time):
-        I = slice(tbin_indices[t], 
-                    tbin_indices[t] + tbin_counts[t])
         start = tbin_indices[t]
         end = tbin_indices[t] + tbin_counts[t]
         for row in range(start, end):

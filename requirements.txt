@@ -1,13 +1,15 @@
 pytest==6.2.2
 scipy==1.5.4
 matplotlib==3.3.4
+dask==2021.1.0
 dask_ms==0.2.6
+xarray==0.16.2
 codex_africanus==0.2.10
 simms==1.2.0
-Tigger==0.1.1
-dask==2021.1.0
+astro-tigger-lsm==1.6.1
 numpy==1.19.5
 numba==0.52.0
 tabulate==0.8.9
 tqdm==4.56.0
 PyYAML==5.4.1
+toolz==0.8.2

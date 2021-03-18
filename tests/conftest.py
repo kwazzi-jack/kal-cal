@@ -4,9 +4,7 @@ from .fixtures.ms import *
 from .fixtures.data import *
 from .fixtures.tools import *
 from .fixtures.matrix import *
-
-_dir_path = os.path.dirname(__file__)
-_ms_path = os.path.join(_dir_path, "TESTING_SET.MS")
+from .fixtures.generate import *
 
 DECIMALS = 5
 
@@ -17,6 +15,11 @@ DIR_VARS = [1, 4]
 SIGMA_N_VARS = [0.1]
 SIGMA_F_VARS = [1.0]
 SCALES = (0.05, 0.05, 0.5)
+
+
+@pytest.fixture(scope="session")
+def ms_name(generate_ms):
+    return generate_ms
 
 
 @pytest.fixture(params=ANT_VARS, scope="session")
@@ -62,10 +65,3 @@ def sigma_f(request):
 @pytest.fixture(scope="session")
 def length_scales():
     return SCALES
-
-
-@pytest.fixture(scope="session")
-def ms_name():
-    """Session level fixture for test data path."""
-
-    return _ms_path

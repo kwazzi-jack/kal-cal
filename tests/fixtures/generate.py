@@ -38,16 +38,14 @@ def generate_ms(tmpdir_factory):
     with open("tests/custom_registry.yaml", 'r') as file:
         entry = yaml.safe_load(file)
     
+    config_path = os.path.expanduser('~/.config/packratt/')
+    reg_path = os.path.join(config_path, "registry.yaml")
     try:
-        reg_path = os.path.join(
-            os.environ['VIRTUAL_ENV'],
-            "lib64/python3.6/site-packages/",
-            "packratt/conf/registry.yaml")
-    except KeyError:
-        reg_path = os.path.expanduser("~/.local/lib/python3.6/"
-        + "site-packages/packratt/conf/registry.yaml")
-
-    with open(reg_path, 'a') as file:
+        os.mkdir(config_path)
+    except:
+        pass
+    
+    with open(reg_path, 'w') as file:
         yaml.safe_dump(entry, file)
 
     folder = tmpdir_factory.mktemp("tmp")

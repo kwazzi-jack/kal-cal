@@ -1,0 +1,6 @@
+'MSC_DATA/MS/KAT7_100_7_8.tar.gz':
+  type: google
+  file_id: 1fJB6dvN7RtPWwGX1usDFYAqrvaACS0bb
+  hash: 6f8abf87f817165fcecd8f09e5b38cde0969ecbc27ffe812ab06654dc3c71e61
+  description: >
+    Kat7 testing set with 100 time-steps and 8 channels.

@@ -44,7 +44,8 @@ def generate_ms(tmpdir_factory):
             "lib64/python3.6/site-packages/",
             "packratt/conf/registry.yaml")
     except KeyError:
-        reg_path = os.path.expanduser('~/.config/packratt/registry.yaml')
+        reg_path = os.path.expanduser("~/.local/lib/python3.6/"
+        + "site-packages/packratt/conf/registry.yaml")
 
     with open(reg_path, 'a') as file:
         yaml.safe_dump(entry, file)

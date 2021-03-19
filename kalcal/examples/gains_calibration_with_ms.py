@@ -6,7 +6,7 @@ from kalcal.generation import from_ms
 from kalcal.generation import create_ms
 from kalcal.generation import loader
 from kalcal.plotting.multiplot import plot_time
-from kalcal.tools.statistics import (state_sigma_test,
+from kalcal.tools.statistics import (cond_number, state_sigma_test,
     magnitude_sigma_test, cond_number)
 
 import matplotlib.pyplot as plt

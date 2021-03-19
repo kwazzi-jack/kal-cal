@@ -109,18 +109,10 @@ def sparse_algorithm(
         Tinv = np.linalg.inv(Pinv + J_herm @ Rinv @ J)
         Sinv = Rinv - Rinv @ J @ Tinv @ J_herm @ Rinv
         K = Pp @ J_herm @ Sinv
-        
-        # Diagonal Version of update
-        # ===========================================
-        # PB = np.diag((Pp @ J.conj().T @ Rinv @ J))
-        # Pn = np.diag(Pp)
-        # up = Pn - (Pn*PB)/(PB + 1)
-        # up = np.diag(up.real)
-        # ===========================================
 
         # Record Posterior values
-        m[k] = gains_reshape(mp + K @ v, shape)
-        P[k] = np.diag(np.diag(Pp - K @ J @ Pp).real)
+        m[k] = gains_reshape(mp + K @ v/2.0, shape)
+        P[k] = np.diag(np.diag(Pp - K @ J @ Pp/2.0).real)
 
     # Newline
     print()
@@ -238,8 +230,8 @@ def numpy_algorithm(
         K = Pp @ J_herm @ Sinv
 
         # Record Posterior values
-        m[k] = gains_reshape(mp + K @ v, shape)
-        P[k] = np.diag(np.diag(Pp - K @ J @ Pp).real)
+        m[k] = gains_reshape(mp + K @ v/2.0, shape)
+        P[k] = np.diag(np.diag(Pp - K @ J @ Pp/2.0).real)
 
     # Newline
     print()

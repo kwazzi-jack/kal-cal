@@ -97,6 +97,8 @@ def sparse_algorithm(
                         jones_slice, ant1_slice, ant2_slice)
         
         # Hermitian of Jacobian
+        L = np.diag(J.conjugate().T @ Rinv @ J)
+        
         J_herm = J.conjugate().T
         
         # Calculate Measure Vector
@@ -105,6 +107,7 @@ def sparse_algorithm(
         
         # Update Step
         v = y - csr_dot_vec(J, mp) 
+        Z = J.conjugate().T @ Rinv @ v
         Pinv = np.diag(1.0/np.diag(Pp))       
         Tinv = np.linalg.inv(Pinv + J_herm @ Rinv @ J)
         Sinv = Rinv - Rinv @ J @ Tinv @ J_herm @ Rinv
@@ -118,9 +121,10 @@ def sparse_algorithm(
         # up = np.diag(up.real)
         # ===========================================
 
-        # Record Posterior values
-        m[k] = gains_reshape(mp + K @ v, shape)
-        P[k] = np.diag(np.diag(Pp - K @ J @ Pp).real)
+        # Record Posterior values       
+        m_vec = mp + 1/2 * Z * 1.0/(np.diag(Pinv) + L)
+        m[k] = gains_reshape(m_vec, shape)
+        P[k] = 1/2* np.diag(1.0/(np.diag(Pinv) + L)).real + 1/2*Pp.real
 
     # Newline
     print()
@@ -238,8 +242,8 @@ def numpy_algorithm(
         K = Pp @ J_herm @ Sinv
 
         # Record Posterior values
-        m[k] = gains_reshape(mp + K @ v, shape)
-        P[k] = np.diag(np.diag(Pp - K @ J @ Pp).real)
+        m[k] = gains_reshape(mp + K @ v/2, shape)
+        P[k] = np.diag(np.diag(Pp - K @ J @ Pp/2).real)
 
     # Newline
     print()

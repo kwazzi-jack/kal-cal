@@ -8,7 +8,7 @@
 Firstly, you need at least `python3`, or even better `python3.6.9`, as this is the version the library was developed on. Use the package manager [pip3](https://pip.pypa.io/en/stable/) to install **kal-cal** as follows:
 
 ```bash
-pip3 install git+https://github.com/brianwelman2/kal-cal.git
+pip install https://github.com/brianwelman2/kal-cal/archive/refs/heads/main.zip
 ```
 
 ## Usage

@@ -1,0 +1,2 @@
+recursive-include kalcal/datasets/ *.txt *.npy 
+include kalcal/datasets/ms/KALMAN_SET.MS/

@@ -3,23 +3,58 @@ name: kal-cal
 on: [push]
 
 jobs:
-  build:
 
+  # Test installing kal-cal via pip
+  test-install:
+    name: Test package install
     runs-on: ubuntu-18.04
     strategy:
       matrix:
         python-version: [3.6]
 
     steps:
-    - uses: actions/checkout@v2
+    # Create Python Environment
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+
+    # Upgrade pip 
+    - name: Upgrade pip 
+      run: |
+        python -m pip install --upgrade pip
+    
+    # Install kal-cal
+    - name: Test install kal-cal
+      run: |
+        pip install pip install https://github.com/brianwelman2/kal-cal/archive/refs/heads/main.zip
+
+  # Run package tests
+  python-tests:
+    name: Testing Suite
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        python-version: [3.6]
+
+    steps:
+    # Make a copy of your repo
+    - name: Checkout code
+    - uses: actions/checkout@v2
+
+    # Create Python Environment
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    # Install kal-cal dependencies
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    # Run pytest
     - name: Test with pytest
       run: |
         pytest tests/

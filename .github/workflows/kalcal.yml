@@ -40,7 +40,7 @@ jobs:
     steps:
     # Make a copy of your repo
     - name: Checkout code
-    - uses: actions/checkout@v2
+      uses: actions/checkout@v2
 
     # Create Python Environment
     - name: Set up Python ${{ matrix.python-version }}

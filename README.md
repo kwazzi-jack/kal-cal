@@ -20,7 +20,7 @@ import kalcal
 *TBD*
 
 ## CI
-This library uses [github-actions](https://travis-ci.org) for continuous integration tests on the same repository.
+This library uses [github-actions](https://github.com/features/actions) for continuous integration tests on the same repository.
 
 ## License
 This package uses the [MIT](https://choosealicense.com/licenses/mit/) license.

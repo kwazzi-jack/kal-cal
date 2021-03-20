@@ -1,6 +1,10 @@
 name: kal-cal
 
-on: [push]
+on: 
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
 
 jobs:
 
@@ -25,10 +29,15 @@ jobs:
         python -m pip install --upgrade pip
     
     # Install kal-cal
-    - name: Test install kal-cal
+    - name: (Test) Install kal-cal
       run: |
         pip install pip install https://github.com/brianwelman2/kal-cal/archive/refs/heads/main.zip
-
+    
+    # Import kal-cal
+    - name: (Test) Import kal-cal
+      run: |
+        python -c "import kalcal; print(kalcal.__version__)"
+        
   # Run package tests
   python-tests:
     name: Testing kal-cal

@@ -24,7 +24,7 @@ def test_import_datasets():
         "datasets.antenna_tables",
         "datasets.gains",
         "datasets.ms",
-        "datasets.sky_models",
+        "datasets.sky_models"
     ]
 
     assert import_modules_list(levels)

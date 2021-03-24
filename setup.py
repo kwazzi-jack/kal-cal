@@ -7,7 +7,7 @@ with open("requirements.txt", "r") as file:
     requirements = file.readlines()
 
 setuptools.setup(
-    name="kal-cal", # Replace with your own username
+    name="kal-cal",
     version="0.0.1",
     author="Brian Welman",
     author_email="brianallisterwelman@gmail.com",
@@ -22,7 +22,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         'Programming Language :: Python :: 3.6'
         "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
+        "Operating System :: Ubuntu-18.04",
     ],
     python_requires='>=3.6',
     test_suite='tests',

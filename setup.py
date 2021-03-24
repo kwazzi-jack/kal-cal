@@ -20,9 +20,9 @@ setuptools.setup(
     classifiers=[
         "Natural Language :: English",
         "Programming Language :: Python :: 3",
-        'Programming Language :: Python :: 3.6'
+        "Programming Language :: Python :: 3.6",
         "License :: OSI Approved :: MIT License",
-        "Operating System :: Ubuntu-18.04",
+        "Operating System :: Unix",
     ],
     python_requires='>=3.6',
     test_suite='tests',

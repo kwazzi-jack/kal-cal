@@ -1,1 +1,3 @@
 recursive-include kalcal/datasets/ *.txt *.npy 
+recursive-include kalcal/datasets/ms/
+recursive-include kalcal/examples/

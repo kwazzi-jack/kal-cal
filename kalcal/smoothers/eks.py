@@ -1,6 +1,6 @@
 import numpy as np
 from numba import njit, objmode
-from kalcal.tools.utils import gains_vector, gains_reshape
+from kalcal.tools.utils import gains_vector, gains_reshape, progress_bar
 
 
 @njit(fastmath=True, nogil=True)
@@ -33,13 +33,7 @@ def numpy_algorithm(
          
         # Progress Bar in object-mode
         with objmode():
-            bar_len = 100
-            total = n_time - 1
-            filled_len = int(round(bar_len*(-k - 1)/float(n_time - 1)))
-            bar = u"\u2588" * filled_len + ' '\
-                    * (bar_len - filled_len)
-            print("\r%s%d%%|%s| %d/%d" % (head, (-k - 1)/total*100, 
-                                            bar, -k - 1, total), end="")
+            progress_bar(head, n_time, -k - 1)
 
         # Predict Step
         mp = gains_vector(m[k])

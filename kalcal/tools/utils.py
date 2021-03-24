@@ -1,6 +1,18 @@
 from numba import jit
 import numpy as np
 import dask.array as da
+import os
+
+
+def progress_bar(head, n_time, k):
+    width, _ = os.get_terminal_size()
+    bar_len = width//5
+    total = n_time - 1
+    filled_len = int(round(bar_len*k/float(n_time - 1)))
+    bar = u"\u2588" * filled_len + ' '\
+            * (bar_len - filled_len)
+    print("\r%s%d%%|%s| %d/%d" % (head, k/total*100, 
+                                bar, k, total), end="")
 
 
 def concat_dir_axis(ms):

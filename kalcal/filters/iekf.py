@@ -1,6 +1,6 @@
 import numpy as np
 from numba import jit, objmode
-from kalcal.tools.utils import gains_vector, gains_reshape, measure_vector
+from kalcal.tools.utils import gains_vector, gains_reshape, measure_vector, progress_bar
 from kalcal.tools.jacobian import compute_aug_csr, compute_aug_np
 from kalcal.tools.sparseops import csr_dot_vec
 
@@ -70,13 +70,7 @@ def sparse_algorithm(
     for k in range(1, n_time): 
 
         # Progress Bar
-        bar_len = 100
-        total = n_time - 1
-        filled_len = int(round(bar_len*k/float(n_time - 1)))
-        bar = u"\u2588" * filled_len + ' '\
-                * (bar_len - filled_len)
-        print("\r%s%d%%|%s| %d/%d" % (head, k/total*100, 
-                                    bar, k, total), end="")
+        progress_bar(head, n_time, k)
 
         # Predict Step
         mp = gains_vector(m[k - 1])
@@ -228,13 +222,7 @@ def numpy_algorithm(
         
         # Progress Bar in object-mode
         with objmode():
-            bar_len = 100
-            total = n_time - 1
-            filled_len = int(round(bar_len*k/float(n_time - 1)))
-            bar = u"\u2588" * filled_len + ' '\
-                    * (bar_len - filled_len)
-            print("\r%s%d%%|%s| %d/%d" % (head, k/total*100, 
-                                        bar, k, total), end="")
+            progress_bar(head, n_time, k)
         
         # Predict Step
         mp = gains_vector(m[k - 1])

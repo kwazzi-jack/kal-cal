@@ -25,7 +25,7 @@ from_ms:
   utimes_per_chunk: 1
   ncpu: 8
   alpha_std: 0.1
-  sigma_n: 0.1
+  sigma_n: 1.0
   lt: 0.05
   lnu: 0.05
   ls: 0.5

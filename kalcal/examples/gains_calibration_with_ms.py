@@ -15,7 +15,7 @@ from os import path
 from tabulate import tabulate
 
 
-def main():   
+def main():
     # Get configurations from yaml
     yaml_args = parser.yaml_parser('config.yml')
     cms_args = yaml_args['create_ms']
@@ -49,10 +49,10 @@ def main():
     n_time, n_ant, n_chan, n_dir = jones.shape    
     
     sigma_f = 1.0
-    sigma_n = 0.1
+    sigma_n = 1.0
 
-    ext_kalman_filter = ekf.numpy_algorithm
-    ext_kalman_smoother = eks.numpy_algorithm
+    ext_kalman_filter = ekf.numba_algorithm
+    ext_kalman_smoother = eks.numba_algorithm
 
     np.random.seed(666)
     mp = np.ones((n_ant, n_chan, n_dir, 2), dtype=np.complex128)

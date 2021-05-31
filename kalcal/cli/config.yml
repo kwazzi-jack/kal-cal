@@ -1,0 +1,9 @@
+# Config YAML for 'kalcal calibrate'
+
+filter: 1
+smoother: 3
+algorithm: "NUMBA"
+sigma_f: 0.1
+sigma_n: 0.1
+step_control: 0.5
+out_file: "gains.npy"

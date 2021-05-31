@@ -28,4 +28,7 @@ setuptools.setup(
     test_suite='tests',
     install_requires=requirements,
     include_package_data=True,
+    entry_points={
+        "console_scripts": ["kalcal = kalcal.cli.calibrate:group"]
+    },
 )

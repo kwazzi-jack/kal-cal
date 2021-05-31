@@ -4,7 +4,7 @@ from kalcal.tools.utils import gains_vector, gains_reshape, progress_bar
 
 
 @njit(fastmath=True, nogil=True)
-def numpy_algorithm(
+def numba_algorithm(
     m : np.ndarray, 
     P : np.ndarray, 
     Q : np.ndarray):

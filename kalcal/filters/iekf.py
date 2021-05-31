@@ -156,7 +156,7 @@ def sparse_algorithm(
 
 
 @jit(nopython=True, fastmath=True)
-def numpy_algorithm(
+def numba_algorithm(
     mp           : np.ndarray, 
     Pp           : np.ndarray, 
     model        : np.ndarray, 

@@ -1,6 +1,10 @@
+from kalcal.generation import from_ms
 import click
 from omegaconf import OmegaConf as ocf
 from kalcal.filters import ekf
+from kalcal.smoothers import eks
+from daskms import xds_from_ms
+
 
 @click.group()
 def group():
@@ -18,7 +22,7 @@ def group():
                 help="Number of RTS Smoother runs.")
 
 @click.option("-a", "--algorithm", 
-                type=click.Choice(["NUMBA", "SPARSE"]),
+                type=click.Choice(["NUMBA", "SPARSE"], case_sensitive=False),
                 default="NUMBA", show_default=True,
                 help="Algorithm optimization to use for the filter.")
 
@@ -33,6 +37,14 @@ def group():
 @click.option("-c", "--step_control", type=float, 
                 default=1/2, show_default=True,
                 help="Step-control on filter update step.")
+
+@click.option("-m", "--model_vis_col", type=str, 
+                default="MODEL_VIS", show_default=True,
+                help="Name of ms column with model visibilities.")
+
+@click.option("-d", "--data_vis_col", type=str, 
+                default="DATA", show_default=True,
+                help="Name of ms column with data visibilities.")
 
 @click.option("-o", "--out_file", type=str,
                 default="gains.npy", show_default=True,
@@ -52,9 +64,20 @@ def calibrate(ms, **kwargs):
         options = ocf.load(options.yaml)
 
     # Check extensions on ms
-    if ms.split(".")[-1].lower() != "ms":
+    if "ms" not in ms.split(".")[-1].lower():
         raise ValueError(f"'{ms}' does not have a valid MS extension.")
 
-    # Choose algorithm
-    if options.algorithm.upper() == "NUMBA":
-        kalman_filter = ekf.numpy     
+    # Choose filter algorithm
+    kalman_filter = {
+        "numba" : ekf.numba_algorithm,
+        "sparse" : ekf.sparse_algorithm
+    }[options.algorithm.lower()]
+    
+    # Choose smoother algorithm
+    kalman_smoother = eks.numba_algorithm
+
+    # Retrieve data columns
+    MS = xds_from_ms(ms)[0]
+    model = MS.get(options.model_vis)
+    dims = ocf.create(dict(MS.sizes))
+    print(dims.chan)    

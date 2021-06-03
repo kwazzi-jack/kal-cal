@@ -140,14 +140,90 @@ def calibrate(ms, **kwargs):
     R = 2 * options.sigma_n**2\
         * np.eye(n_ant * (n_ant - 1) * n_chan, dtype=np.complex128) 
 
-    # Run Kalman Filter
-    m, P = kalman_filter(mp, Pp, model, vis, weight, Q, R, 
-                            ant1, ant2, tbin_indices, tbin_counts)
+    # Variable to keep track of algorithm direction
+    a_dir = "forward"
 
-    # Run Kalman Smoother
-    ms, Ps, G = kalman_smoother(m, P, Q)
+    # Run Kalman Filter for requested number of times
+    for i in range(options.filter):
+        m, P = kalman_filter(mp, Pp, model, vis, weight, Q, R, 
+                                ant1, ant2, tbin_indices, tbin_counts)        
 
-    # Output to gains file
-    # Save gains and settings to file
-    with open(options.out_file, 'wb') as file:        
-        np.save(file, ms)
+        # Correct flipping if last iteration
+        if i == options.filter - 1:
+            if a_dir == "backward":
+                # Reset algorithm direction
+                a_dir = "forward"
+
+                # Flip arrays
+                m = m[::-1]
+                P = P[::-1]
+                model = model[::-1]
+                vis = vis[::-1]
+                weight = weight[::-1]
+                tbin_indices = tbin_indices[::-1] # For consistency
+                tbin_counts = tbin_counts[::-1] # For consistency
+        else:
+            # Set algorithm direction
+            if a_dir == "forward":
+                a_dir == "backward"
+            elif a_dir == "backward":
+                a_dir == "forward"
+            
+            # Flip arrays
+            mp = gains_vector(m[-1])
+            Pp = P[-1]
+            model = model[::-1]
+            vis = vis[::-1]
+            weight = weight[::-1]
+            tbin_indices = tbin_indices[::-1] # For consistency
+            tbin_counts = tbin_counts[::-1] # For consistency
+
+    # Run Kalman Smoother for requested number of times
+    for i in range(options.smoother):
+        ms, Ps, _ = kalman_smoother(m, P, Q)        
+
+        # Correct flipping if last iteration
+        if i == options.smoother - 1:
+            if a_dir == "backward":
+                # Reset algorithm direction
+                a_dir = "forward"
+
+                # Flip arrays
+                ms = ms[::-1]
+                Ps = Ps[::-1]
+        else:
+            # Set algorithm direction
+            if a_dir == "forward":
+                a_dir == "backward"
+            elif a_dir == "backward":
+                a_dir == "forward"
+            
+            # Flip arrays
+            m = ms[::-1]
+            P = Ps[::-1]
+
+    import matplotlib.pyplot as plt
+
+    with open("gains.npy", "rb") as file:
+        jones = np.load(file)
+
+    x = np.arange(n_time)
+    gpq = jones[:, 0, 0, 0, 0] * jones[:, 1, 0, 0, 0].conj()
+    mpq = m[:, 0, 0, 0, 0] * m[:, 1, 0, 0, 0].conj() 
+    spq = ms[:, 0, 0, 0, 0] * ms[:, 1, 0, 0, 0].conj()
+    plt.plot(x, gpq.real, 'k-')
+    plt.plot(x, mpq.real, 'r.')
+    plt.plot(x, spq.real, 'g-')
+    plt.show()
+    exit()
+    # Output to wanted gains to npy file
+    if options.which_gains.lower() == "smoother":
+        with open("smoother_" + options.out_file, 'wb') as file:            
+                np.save(file, ms)
+    elif options.which_gains.lower() == "filter":
+        with open("filter_" + options.out_file, 'wb') as file:            
+                np.save(file, m)
+    elif options.which_gains.lower() == "both":
+        with open(options.out_file, 'wb') as file:            
+                np.save(file, m)
+                np.save(file, ms)

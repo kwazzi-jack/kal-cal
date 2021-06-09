@@ -3,7 +3,7 @@
 filter: 1
 smoother: 3
 algorithm: "NUMBA"
-sigma_f: 0.2
+sigma_f: 0.2  
 sigma_n: 0.1
 step_control: 0.5
 model_column: "J0"

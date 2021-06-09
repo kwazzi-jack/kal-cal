@@ -29,6 +29,6 @@ setuptools.setup(
     install_requires=requirements,
     include_package_data=True,
     entry_points={
-        "console_scripts": ["kalcal = kalcal.cli.calibrate:group"]
+        "console_scripts": ["kalcal = kalcal.cli.main:group"]
     },
 )

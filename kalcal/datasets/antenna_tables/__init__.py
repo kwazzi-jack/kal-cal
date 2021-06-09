@@ -39,7 +39,7 @@ def list_antenna_tables():
     """List all antenna tables allowed for empty ms creation."""
 
     output = """
-    ===> Below are implemented antenna-tables for `create_empty_ms` command:
+    ===> Implemented antenna-tables for `create_empty_ms` command:
     ===> kat7, lofar, meerkat, ska197, ska254, vlaa, vlab, vlac, vlad, wsrt   
     """
 

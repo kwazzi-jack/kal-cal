@@ -1,6 +1,8 @@
 # kalcal.dataset.sky_models attributes
 from pkg_resources import resource_filename
 
+# Custom basic sky-models for to use
+
 MODEL_1 = resource_filename('kalcal', 
             'datasets/sky_models/MODEL-1.txt')
 

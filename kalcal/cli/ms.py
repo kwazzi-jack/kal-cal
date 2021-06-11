@@ -3,8 +3,7 @@ from kalcal.create.ms import new as new_cmd
 
 
 @click.command()
-@click.option("-m", "--msname", type=str,
-                help="Name of the measurement set.")
+@click.argument("msname", type=str)
 
 @click.option("-t", "--tel", type=str,
                 default="kat7", show_default=True,
@@ -54,4 +53,4 @@ def ms(msname, **kwargs):
     """Create command to make a new empty measurement set using
     `simms` with some added features to make it easier to create."""
 
-    return new_cmd(**kwargs)
+    return new_cmd(msname, **kwargs)

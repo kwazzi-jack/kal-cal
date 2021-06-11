@@ -4,6 +4,7 @@ from kalcal.calibration.vanilla import calibrate as calibrate_cmd
 
 @click.command()
 @click.argument("ms", type=str)
+
 @click.option("-f", "--filter", type=int,
                 default=1, show_default=True,
                 help="Number of Kalman Filter runs.")

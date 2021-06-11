@@ -1,7 +1,6 @@
 # Config yaml for 'kal-create ms'
 
-  msname: 'MEERKAT.MS' 
-  tel: 'meerkat'
+  tel: 'kat-7'
   pos_type: 'ascii'
   dec: ' -30d0m0s' 
   ra: '0h0m0s'    

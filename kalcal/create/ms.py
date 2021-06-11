@@ -27,7 +27,7 @@ antenna_tables = {
 }
 
 
-def new(**kwargs):
+def new(msname, **kwargs):
     """Create a new simple empty measurement set using
     simms, given the arguments parsed."""
 
@@ -39,6 +39,7 @@ def new(**kwargs):
 
     # Set to struct
     ocf.set_struct(options, True)
+
     # Change path to antenna table
     try:
         pos = antenna_tables[options.tel.lower()]        
@@ -48,9 +49,9 @@ def new(**kwargs):
             + f"{', '.join(antenna_tables.keys())}")
     
     # Create empty measurment set (design of simms doesn't allow suppressing of output)
-    print(f"==> Creating empty ms with `simms`: {options.msname}")  
+    print(f"==> Creating empty ms with `simms`: {msname}")  
     simms.create_empty_ms(
-        msname=options.msname,
+        msname=msname,
         tel=options.tel,
         pos_type=options.pos_type,
         pos=pos,

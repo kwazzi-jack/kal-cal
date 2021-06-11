@@ -1,0 +1,14 @@
+# Config yaml for 'kal-create ms'
+
+  msname: 'MEERKAT.MS' 
+  tel: 'meerkat'
+  pos_type: 'ascii'
+  dec: ' -30d0m0s' 
+  ra: '0h0m0s'    
+  synthesis: 5
+  dtime: 90
+  freq0: "1.4GHz"
+  nchan: "1"
+  dfreq: "10MHz"
+  stokes: "RR RL LR LL"
+  verbose: False

@@ -1,9 +1,23 @@
 import click
-from kalcal.cli.calibrate import calibrate
+from kalcal.cli.vanilla import vanilla
+from kalcal.cli.ms import ms
 
 
-@click.group(invoke_without_command=True)
-def group():
+# Commands for kal-calibrate 
+@click.group()
+def kalcal_calibrate():
     pass
 
-group.add_command(calibrate)
+
+# Commands for kal-create
+@click.group()
+def kalcal_create():
+    pass
+
+
+# Add commands to kal-calibrate
+kalcal_calibrate.add_command(vanilla)
+
+
+# Add commands to kal-create
+kalcal_create.add_command(ms)

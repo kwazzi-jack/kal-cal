@@ -118,8 +118,8 @@ def calibrate(ms, **kwargs):
             tbin_counts = tbin_counts[::-1] # For consistency
     
     # Stop filter timer and start smoother timer
+    filter_time = time() - filter_start
     smoother_start = time()
-    filter_time = smoother_start - filter_start
 
     # Run Kalman Smoother for requested number of times
     for i in range(options.smoother):
@@ -166,9 +166,9 @@ def calibrate(ms, **kwargs):
                 np.save(file, ms)
 
     # Show timer results
-    print(f"==> Completed and gains saved to: {gains_file}")
-    print(f"==> Filter run(s): {options.filter} "\
+    print(f"==> Completed and saved to: {gains_file}")
+    print(f"==> {options.filter} filter run(s) "\
           + f"in {np.round(filter_time, 3)} s, "\
-          + f"Smoother run(s): {options.smoother} "\
+          + f"{options.smoother} smoother run(s) "\
           + f"in {np.round(smoother_time, 3)} s, "\
           + f"Total taken: {np.round(total_time, 3)} s")

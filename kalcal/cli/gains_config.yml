@@ -1,6 +1,6 @@
 # Config yaml for 'kal-create gains'
 
-  type: "phase"
+  type: "normal"
   std: 0.1
   diffs: [0.05, 0.05, 0.5]
   out_file: "gains.npy"    

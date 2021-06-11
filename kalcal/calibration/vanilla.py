@@ -4,6 +4,7 @@ from kalcal.smoothers import eks
 from kalcal.tools.utils import gains_vector
 from daskms import xds_from_ms
 import numpy as np
+from time import time
 
 
 def calibrate(ms, **kwargs):
@@ -35,12 +36,14 @@ def calibrate(ms, **kwargs):
     dims = ocf.create(dict(MS.sizes))
     n_row = dims.row
     n_chan = dims.chan
-    n_dir = 1
-    n_corr = 1
+    n_corr = dims.corr
 
     # Load model visibilities (dask ignored for now)
     model = MS.get(options.model_column).data.reshape(
-        dims.row, dims.chan, 1, dims.corr).compute().astype(np.complex128)
+        n_row, n_chan, -1, n_corr).compute().astype(np.complex128)
+
+    # Get number of directions from model visibilities column
+    n_dir = model.shape[2]
 
     # Load data visibilities (dask ignored for now)
     vis = MS.get(options.vis_column).data.compute().astype(np.complex128)
@@ -53,9 +56,6 @@ def calibrate(ms, **kwargs):
                                         return_index=True, 
                                         return_counts=True)   
 
-    # Set time dimension
-    n_time = len(tbin_indices)
-
     # Get antenna arrays (dask ignored for now)
     ant1 = MS.ANTENNA1.data.compute()
     ant2 = MS.ANTENNA2.data.compute()
@@ -63,7 +63,7 @@ def calibrate(ms, **kwargs):
     # Set antenna dimension
     n_ant = np.max((np.max(ant1), np.max(ant2))) + 1
 
-    # Adjust for correlations axis
+    # Adjust for correlations axis (4 to 1)
     model = model[:, :, :, 0]
     vis = vis[:, :, 0]
     weight = weight[:, 0]
@@ -82,6 +82,7 @@ def calibrate(ms, **kwargs):
     a_dir = "forward"
 
     # Run Kalman Filter for requested number of times
+    total_start = filter_start = time()
     for i in range(options.filter):
         m, P = kalman_filter(mp, Pp, model, vis, weight, Q, R, 
                                 ant1, ant2, tbin_indices, tbin_counts)        
@@ -115,6 +116,10 @@ def calibrate(ms, **kwargs):
             weight = weight[::-1]
             tbin_indices = tbin_indices[::-1] # For consistency
             tbin_counts = tbin_counts[::-1] # For consistency
+    
+    # Stop filter timer and start smoother timer
+    smoother_start = time()
+    filter_time = smoother_start - filter_start
 
     # Run Kalman Smoother for requested number of times
     for i in range(options.smoother):
@@ -140,14 +145,30 @@ def calibrate(ms, **kwargs):
             m = ms[::-1]
             P = Ps[::-1]
 
+    # Stop time
+    stop_time = time()
+    total_time = stop_time - total_start
+    smoother_time = stop_time - smoother_start
+
     # Output to wanted gains to npy file
     if options.which_gains.lower() == "smoother":
-        with open("smoother_" + options.out_file, 'wb') as file:            
-                np.save(file, ms)
+        gains_file = "smoother_" + options.out_file
+        with open(gains_file, 'wb') as file:            
+                np.save(file, ms)        
     elif options.which_gains.lower() == "filter":
-        with open("filter_" + options.out_file, 'wb') as file:            
+        gains_file = "filter_" + options.out_file,
+        with open(gains_file, 'wb') as file:            
                 np.save(file, m)
     elif options.which_gains.lower() == "both":
-        with open(options.out_file, 'wb') as file:            
+        gains_file = options.out_file
+        with open(gains_file, 'wb') as file:            
                 np.save(file, m)
                 np.save(file, ms)
+
+    # Show timer results
+    print(f"==> Completed and gains saved to: {gains_file}")
+    print(f"==> Filter run(s): {options.filter} "\
+          + f"in {np.round(filter_time, 3)} s, "\
+          + f"Smoother run(s): {options.smoother} "\
+          + f"in {np.round(smoother_time, 3)} s, "\
+          + f"Total taken: {np.round(total_time, 3)} s")

@@ -1,6 +1,7 @@
 import click
 from kalcal.cli.vanilla import vanilla
 from kalcal.cli.ms import ms
+from kalcal.cli.gains import gains
 
 
 # Commands for kal-calibrate 
@@ -21,3 +22,4 @@ kalcal_calibrate.add_command(vanilla)
 
 # Add commands to kal-create
 kalcal_create.add_command(ms)
+kalcal_create.add_command(gains)

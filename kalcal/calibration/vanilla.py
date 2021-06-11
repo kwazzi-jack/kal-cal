@@ -11,11 +11,10 @@ def calibrate(ms, **kwargs):
     filter and smoother in an ordinary manner."""
 
     # Options to attributed dictionary
-    options = ocf.create(kwargs)
-
-    # If config file exists, overwrite options
-    if options.yaml is not None:
-        options = ocf.load(options.yaml)
+    if kwargs["yaml"] is not None:
+        options = ocf.load(kwargs["yaml"])
+    else:    
+        options = ocf.create(kwargs)    
 
     # Set to struct
     ocf.set_struct(options, True)

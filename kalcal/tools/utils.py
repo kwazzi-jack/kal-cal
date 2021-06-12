@@ -15,21 +15,12 @@ def progress_bar(head, n_time, k):
                                 bar, k, total), end="")
 
 
-def concat_dir_axis(ms):
+def concat_dir_axis(ms, model_columns):
     """Special function to concatenate
     all the sources in the MS by along
     the direction axis."""
 
-    sources = []
-    i = 0
-    
-    while True:
-        try:
-            source = ms.get(f'J{i}').data
-            sources.append(source)
-            i += 1
-        except:
-            break
+    sources = [ms.get(c).data for c in model_columns]
     
     n_row, n_chan, n_corr  = sources[0].shape
     n_dir = len(sources)

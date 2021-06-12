@@ -1,7 +1,7 @@
 from omegaconf import OmegaConf as ocf
 from kalcal.filters import ekf
 from kalcal.smoothers import eks
-from kalcal.tools.utils import gains_vector
+from kalcal.tools.utils import gains_vector, concat_dir_axis
 from daskms import xds_from_ms
 import numpy as np
 from time import time
@@ -37,10 +37,12 @@ def calibrate(ms, **kwargs):
     n_row = dims.row
     n_chan = dims.chan
     n_corr = dims.corr
+    
+    # Check if single or multiple model columns
+    model_columns = options.model_column.replace(" ", "").split(",")    
 
     # Load model visibilities (dask ignored for now)
-    model = MS.get(options.model_column).data.reshape(
-        n_row, n_chan, -1, n_corr).compute().astype(np.complex128)
+    model = concat_dir_axis(MS, model_columns).compute().astype(np.complex128)
 
     # Get number of directions from model visibilities column
     n_dir = model.shape[2]
@@ -63,7 +65,7 @@ def calibrate(ms, **kwargs):
     # Set antenna dimension
     n_ant = np.max((np.max(ant1), np.max(ant2))) + 1
 
-    # Adjust for correlations axis (4 to 1)
+    # Adjust for correlations axis (n_corr to 1)
     model = model[:, :, :, 0]
     vis = vis[:, :, 0]
     weight = weight[:, 0]
@@ -74,6 +76,10 @@ def calibrate(ms, **kwargs):
     Pp = np.eye(mp.size, dtype=np.complex128)
 
     # Create noise matrices
+    if options.sigma_n is None:
+        # Temporary fix till weights are adjusted
+        options.sigma_n = 1 
+        
     Q = options.sigma_f**2 * np.eye(mp.size, dtype=np.complex128)
     R = 2 * options.sigma_n**2\
         * np.eye(n_ant * (n_ant - 1) * n_chan, dtype=np.complex128) 

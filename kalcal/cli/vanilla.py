@@ -32,7 +32,9 @@ from kalcal.calibration.vanilla import calibrate as calibrate_cmd
 
 @click.option("-m", "--model_column", type=str, 
                 default="MODEL_VIS", show_default=True,
-                help="Name of ms column with model visibilities.")
+                help="Name of ms column with model visibilities. If there "\
+                    + "are multiple columns, comma separate them and add "\
+                    + "quotations to indicate a string.")
 
 @click.option("-v", "--vis_column", type=str, 
                 default="DATA", show_default=True,
@@ -41,6 +43,11 @@ from kalcal.calibration.vanilla import calibrate as calibrate_cmd
 @click.option("-w", "--weight_column", type=str, 
                 default="WEIGHT", show_default=True,
                 help="Name of ms column with weights.")
+
+@click.option("-o", "--out_column", type=str,
+                default="KAL_DATA", show_default=True,
+                help="Name of ms column to write filter and smoother "\
+                    + "corrected data visibilities too.")
 
 @click.option("-o", "--out_file", type=str,
                 default="gains.npy", show_default=True,

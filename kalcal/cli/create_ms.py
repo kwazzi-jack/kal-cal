@@ -52,5 +52,5 @@ from kalcal.create.ms import new as new_cmd
 def ms(msname, **kwargs):
     """Create command to make a new empty measurement set using
     `simms` with some added features to make it easier to create."""
-
+    
     return new_cmd(msname, **kwargs)

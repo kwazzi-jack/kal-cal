@@ -79,7 +79,7 @@ def calibrate(ms, **kwargs):
     if options.sigma_n is None:
         # Temporary fix till weights are adjusted
         options.sigma_n = 1 
-        
+
     Q = options.sigma_f**2 * np.eye(mp.size, dtype=np.complex128)
     R = 2 * options.sigma_n**2\
         * np.eye(n_ant * (n_ant - 1) * n_chan, dtype=np.complex128) 
@@ -156,23 +156,23 @@ def calibrate(ms, **kwargs):
     total_time = stop_time - total_start
     smoother_time = stop_time - smoother_start
 
+    # Gains files
+    gains_files = []
+
     # Output to wanted gains to npy file
-    if options.which_gains.lower() == "smoother":
-        gains_file = "smoother_" + options.out_file
-        with open(gains_file, 'wb') as file:            
+    if options.which_gains.lower() == "smoother"\
+        or options.which_gains.lower() == "both":
+        gains_files.append("smoother_" + options.out_file)
+        with open(gains_files[-1], 'wb') as file:            
                 np.save(file, ms)        
-    elif options.which_gains.lower() == "filter":
-        gains_file = "filter_" + options.out_file,
-        with open(gains_file, 'wb') as file:            
+    if options.which_gains.lower() == "filter"\
+        or options.which_gains.lower() == "both":
+        gains_files.append("filter_" + options.out_file)
+        with open(gains_files[-1], 'wb') as file:            
                 np.save(file, m)
-    elif options.which_gains.lower() == "both":
-        gains_file = options.out_file
-        with open(gains_file, 'wb') as file:            
-                np.save(file, m)
-                np.save(file, ms)
 
     # Show timer results
-    print(f"==> Completed and saved to: {gains_file}")
+    print(f"==> Completed and saved to: {', '.join(gains_files)}")
     print(f"==> {options.filter} filter run(s) "\
           + f"in {np.round(filter_time, 3)} s, "\
           + f"{options.smoother} smoother run(s) "\

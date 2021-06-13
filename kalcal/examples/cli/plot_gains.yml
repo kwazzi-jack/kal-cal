@@ -28,7 +28,7 @@ show: "0, 1, 2, 3"
 
 # The axis in the jones to set as the x-axis. Only
 # choices are time and frequency.
-axis: "FREQ"
+axis: "TIME"
 
 # The axis in the complex plane to choose to plot.
 # Only choices are real and imaginary.
@@ -36,7 +36,7 @@ complex_axis: "REAL"
 
 # Optional title to use for your plot, otherwise
 # one is made for you.
-title: "Gains magnitude plot over FREQ (REAL)"
+title: "Gains magnitude plot over TIME (REAL)"
 
 # Name of output file for the plot to save to.
 out_file: "gains_plot.png"

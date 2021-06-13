@@ -31,7 +31,8 @@ setuptools.setup(
     entry_points={
         "console_scripts": [
             "kal-calibrate = kalcal.cli.main:kalcal_calibrate",
-            "kal-create = kalcal.cli.main:kalcal_create"
+            "kal-create = kalcal.cli.main:kalcal_create",
+            "kal-plot = kalcal.cli.main:kalcal_plot"
             ]
     },
 )

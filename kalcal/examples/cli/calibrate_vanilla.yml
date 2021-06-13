@@ -1,0 +1,47 @@
+# Config yaml for 'kal-calibrate vanilla'
+
+# Number of filter runs to apply to your data
+# before moving to smoothing.
+filter: 1
+
+# Number of smoother runs to apply before 
+# completing.
+smoother: 3
+
+# Choice of filter algorithm to use based on
+# needs. NUMBA is for speed, but high memory
+# usage and SPARSE is for memory, but slow
+# computation speed.
+algorithm: "SPARSE"
+
+# Standard deviation for the process noise matrix
+sigma_f: 0.1
+
+# Standard deviation for the measurement noise matrix
+sigma_n: 0.1
+
+# Step control for the Kalman Gain Update Step in 
+# the filter, i.e. the mysterious factor of a 1/2.
+step_control: 0.5
+
+# The model column to get X_pq in the ms. 
+# If there are multiple sources, list them in 
+# a comma separated list with
+# string quotations and they will be joined along
+# the direction axis.
+model_column: "J0"
+
+# The visibilities column to get V_pq in the ms
+vis_column: "DATA"
+
+# The weight column in the ms
+weight_column: "WEIGHT"
+
+# Output .npy file for the calibrate gains. If both
+# gains are wanted, it will save to two separate
+# .npy files.
+out_file: "gains.npy"
+
+# Decide which calibrated gains you would like to 
+# save.
+which_gains: "BOTH"

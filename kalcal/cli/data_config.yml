@@ -1,6 +1,0 @@
-# Config yaml for 'kal-create data'
-
-  std: 0.1
-  phase_convention: "CODEX"
-  utime: 1
-  ncpu: 8

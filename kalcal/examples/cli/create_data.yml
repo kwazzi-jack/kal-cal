@@ -1,0 +1,20 @@
+# Config yaml for 'kal-create data'
+
+# Controls standard deviation of zero-mean noise generated for the noise
+# on the visibilities. If zero, it is ignored.
+std: 0.1
+
+# Phase convention of the UVW coordinates to ensure africanus functions
+# work properly. CODEX is normally fine for most cases.
+phase_convention: "CODEX"
+
+# Number of unique time-steps in a chunk in a dask array. This does not
+# mean much for the filter and smoother as they are not implemented with
+# dask, but useful for the data simulation (which uses dask to speed it
+# up).
+utime: 1
+
+# Number of cpu cores dask is allowed to use. Be careful! If set to -1,
+# it will attempt to use ALL cores (which will make you public enemy
+# number one on Rhodes Clusters.)
+ncpu: 8

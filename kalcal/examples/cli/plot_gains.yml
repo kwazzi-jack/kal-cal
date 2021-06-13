@@ -1,0 +1,46 @@
+# Config yaml for 'kal-plot gains'
+
+# Main plot option. Each row is a unique plot for
+# the function to plot. The values required are:
+#     1. Path/Name of .npy gains file with jones in it
+#     2. Label for this plot
+#     3. Color for this plot
+#     4. Style for this plot (words or symbols are allowed).
+# For now, have gains with shapes similar to:
+#   (n_time, n_ant, n_chan, n_dir, n_corr)
+# Or if you use the filter and smoother:
+#   (n_time, n_ant, n_chan, n_dir, n_aug)
+plot: [
+  ["normal_gains.npy", "True Jones", "black", "-"],
+  ["filter_gains.npy", "EKF", "red", ":"],
+  ["smoother_gains.npy", "EKS", "green", "-"]
+]
+
+# Reference antenna to plot against with the 
+# magnitude-only values
+ref_ant: 0
+
+# List of antennas you wish to plot. If you want
+# to plot all, use -1. Note the use of quotations
+# to keep the value a string, otherwise it won't
+# work.
+show: "0, 1, 2, 3"
+
+# The axis in the jones to set as the x-axis. Only
+# choices are time and frequency.
+axis: "FREQ"
+
+# The axis in the complex plane to choose to plot.
+# Only choices are real and imaginary.
+complex_axis: "REAL"
+
+# Optional title to use for your plot, otherwise
+# one is made for you.
+title: "Gains magnitude plot over FREQ (REAL)"
+
+# Name of output file for the plot to save to.
+out_file: "gains_plot.png"
+
+# Flag to tell the program to show the plot when
+# its done.
+display: True

@@ -1,0 +1,73 @@
+# Config yaml for 'kalcal`
+
+1: # Create an empty measurement set called KAT7.MS
+  command: "kal-create ms"
+  arguments:
+    msname: "KAT7.MS"
+  options:
+    tel: 'kat-7'
+    pos_type: 'ascii'
+    dec: ' -30d0m0s' 
+    ra: '0h0m0s'    
+    synthesis: 5
+    dtime: 60
+    freq0: "1.4GHz"
+    nchan: "16"
+    dfreq: "10MHz"
+    stokes: "RR RL LR LL"
+
+2: # Create magnitude-only gains and save it to gains.npy
+  command: "kal-create gains"
+  arguments:
+    ms: "KAT7.MS"
+    sky_model: "model-1"
+  options:
+    type: "normal"
+    std: 0.1
+    diffs: [0.05, 0.05, 0.5]
+    out_file: "gains.npy"   
+
+3: # Simulate visibilities using KAT7.MS and gains.npy
+  command: "kal-create data"
+  arguments:
+    ms: "KAT7.MS"
+    sky_model: "model-1"
+    gains: "normal_gains.npy"
+  options:
+    std: 0.1
+    phase_convention: "CODEX"
+    utime: 1
+    ncpu: 8
+
+4: # Run Vanilla Filter and Smoother over visibilities
+  command: "kal-calibrate vanilla"
+  arguments:
+    ms: "KAT7.MS"
+  options:
+    filter: 1
+    smoother: 3
+    algorithm: "NUMBA"
+    sigma_f: 0.1
+    sigma_n: 0.1
+    step_control: 0.5
+    model_column: "J0"
+    vis_column: "DATA"
+    weight_column: "WEIGHT"
+    out_file: "gains.npy"
+    which_gains: "BOTH"
+
+5: # Plot gains-magnitude from calibrated and true gains
+  command: "kal-plot gains"
+  options:
+    plot: [
+      ["normal_gains.npy", "True Jones", "black", "-"],
+      ["filter_gains.npy", "EKF", "red", ":"],
+      ["smoother_gains.npy", "EKS", "green", "-"]
+    ]
+    ref_ant: 0
+    show: "0, 1, 2, 3"
+    axis: "TIME"
+    complex_axis: "REAL"
+    title: "Gains magnitude plot over TIME (REAL)"
+    out_file: "gains_plot.png"
+    display: True

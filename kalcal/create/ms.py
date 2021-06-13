@@ -30,7 +30,7 @@ antenna_tables = {
 def new(msname, **kwargs):
     """Create a new simple empty measurement set using
     simms, given the arguments parsed."""
-
+    
     # Options to attributed dictionary
     if kwargs["yaml"] is not None:
         options = ocf.load(kwargs["yaml"])

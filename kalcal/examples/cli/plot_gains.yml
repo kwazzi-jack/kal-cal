@@ -12,7 +12,7 @@
 #   (n_time, n_ant, n_chan, n_dir, n_aug)
 plot: [
   ["normal_gains.npy", "True Jones", "black", "-"],
-  ["filter_gains.npy", "EKF", "red", ":"],
+  ["filter_gains.npy", "EKF", "red", "."],
   ["smoother_gains.npy", "EKS", "green", "-"]
 ]
 

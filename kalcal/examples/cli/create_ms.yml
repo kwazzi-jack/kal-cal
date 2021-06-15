@@ -24,7 +24,7 @@ dtime: 60
 # Initial frequency, number of channels and space
 # between channels
 freq0: "1.4GHz"
-nchan: "16"
+nchan: "1"
 dfreq: "10MHz"
 
 # Polarization for the antenna feeds

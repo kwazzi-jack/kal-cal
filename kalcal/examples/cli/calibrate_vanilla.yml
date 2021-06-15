@@ -12,7 +12,7 @@ smoother: 3
 # needs. NUMBA is for speed, but high memory
 # usage and SPARSE is for memory, but slow
 # computation speed.
-algorithm: "SPARSE"
+algorithm: "NUMBA"
 
 # Standard deviation for the process noise matrix
 sigma_f: 0.1

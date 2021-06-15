@@ -133,7 +133,7 @@ def gains(**kwargs):
 
             # Choose real or imaginary
             pq = set_axis(pq)
-            ax.plot(x_axis, pq, linestyle=linestyle, color=color, label=label, lw=1.2)
+            ax.plot(x_axis, pq, linestyle, color=color, label=label, lw=1.2)
             ax.tick_params(axis='x')
             ax.tick_params(axis='y') 
 

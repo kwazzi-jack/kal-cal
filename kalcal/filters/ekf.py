@@ -211,15 +211,26 @@ def numba_algorithm(
                             n_ant, n_chan)        
 
         # Update Step
-        v = y - J @ mp        
-        Pinv = np.diag(1.0/np.diag(Pp))       
-        Tinv = np.linalg.inv(Pinv + J_herm @ Rinv @ J)
-        Sinv = Rinv - Rinv @ J @ Tinv @ J_herm @ Rinv
-        K = Pp @ J_herm @ Sinv
+
+        # ! NORMAL IMPLEMENTATION (FULL)
+        # v = y - J @ mp        
+        # Pinv = np.diag(1.0/np.diag(Pp))       
+        # Tinv = np.linalg.inv(Pinv + J_herm @ Rinv @ J)
+        # Sinv = Rinv - Rinv @ J @ Tinv @ J_herm @ Rinv
+        # K = Pp @ J_herm @ Sinv
+
+        # DIAGONALISATION IMPLEMENTATION
+        v = y - J @ mp 
+        p = np.diag(Pp)
+        pinv = 1.0/p
+        u = np.diag(J_herm @ Rinv @ J) # Diagonal of JHJ
+        z = J_herm @ Rinv @ v          # Diagonal of JHr
+        est_m = mp + 1/2 * z / (pinv + u)
+        est_P = 1/2 * p + 1/2 * p / (p * u + 1)
 
         # Record Posterior values
-        m[k] = gains_reshape(mp + K @ v/2.0, shape)
-        P[k] = np.diag(np.diag(Pp - K @ J @ Pp/2.0).real)
+        m[k] = gains_reshape(est_m, shape)
+        P[k] = np.diag(est_P.real)
 
     # Newline
     print()

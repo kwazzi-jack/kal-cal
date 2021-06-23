@@ -7,12 +7,16 @@ type: "normal"
 
 # Controls standard deviation of NORMAl gains spread.
 # Note if set to 0, all gains will be equal over time.
-std: 0.1
+std: 1.0
 
 # Dimension differentials which controls smoothness
 # of values along that axis. The tuple controls the 
 # following axes: (time, frequency, direction)
-diffs: [0.05, 0.05, 0.5]
+diffs: [0.02, 0.05, 0.5]
+
+# Set if gains should be direction independent, i.e.
+# no direction axis
+die: True
 
 # Name of output file for your gains to be stored in.
 # To open it, just open the file and parse the file

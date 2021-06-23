@@ -174,6 +174,11 @@ def new(ms, sky_model, **kwargs):
         radec_s = np.array([[source.pos.ra, source.pos.dec]])
         lm[d] =  radec_to_lm(radec_s, radec0)
 
+    # Direction independent gains
+    if options.die:
+        lm = np.array(lm[0]).reshape((1, -1))
+        n_dir = 1
+    
     # Choose between phase-only or normal
     if options.type == "phase":
         # Run phase-only
@@ -197,7 +202,7 @@ def new(ms, sky_model, **kwargs):
                                 n_time, n_ant, n_chan, 
                                 n_dir, n_corr, options.std, 
                                 lt, lnu, ls)
-    
+
     # Output to jones to .npy file
     gains_file = f"{options.type}_{options.out_file}"    
     if options.out_file is not None:

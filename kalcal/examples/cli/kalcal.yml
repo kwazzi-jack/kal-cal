@@ -3,14 +3,14 @@
 1: # Create an empty measurement set called KAT7.MS
   command: "kal-create ms"
   arguments:
-    msname: "KAT7.MS"
+    msname: "MEERKAT.MS"
   options:
-    tel: 'kat-7'
+    tel: 'meerkat'
     pos_type: 'ascii'
     dec: ' -30d0m0s' 
     ra: '0h0m0s'    
-    synthesis: 5
-    dtime: 60
+    synthesis: 10
+    dtime: 50
     freq0: "1.4GHz"
     nchan: "1"
     dfreq: "10MHz"
@@ -19,22 +19,22 @@
 2: # Create magnitude-only gains and save it to gains.npy
   command: "kal-create gains"
   arguments:
-    ms: "KAT7.MS"
+    ms: "MEERKAT.MS"
     sky_model: "model-1"
   options:
     type: "normal"
-    std: 0.1
-    diffs: [0.05, 0.05, 0.5]
+    std: 1.0
+    diffs: [0.02, 0.05, 0.5]
     out_file: "gains.npy"   
 
 3: # Simulate visibilities using KAT7.MS and gains.npy
   command: "kal-create data"
   arguments:
-    ms: "KAT7.MS"
+    ms: "MEERKAT.MS"
     sky_model: "model-1"
     gains: "normal_gains.npy"
   options:
-    std: 0.1
+    std: 1.0
     phase_convention: "CODEX"
     utime: 1
     ncpu: 8
@@ -42,17 +42,18 @@
 4: # Run Vanilla Filter and Smoother over visibilities
   command: "kal-calibrate vanilla"
   arguments:
-    ms: "KAT7.MS"
+    ms: "MEERKAT.MS"
   options:
     filter: 1
     smoother: 3
     algorithm: "NUMBA"
-    sigma_f: 0.1
-    sigma_n: 0.1
+    sigma_f: 1.0
+    sigma_n: 1.0
     step_control: 0.5
     model_column: "J0"
     vis_column: "DATA"
     weight_column: "WEIGHT"
+    sum_over: False
     out_file: "gains.npy"
     which_gains: "BOTH"
 

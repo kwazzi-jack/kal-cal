@@ -15,10 +15,10 @@ smoother: 3
 algorithm: "NUMBA"
 
 # Standard deviation for the process noise matrix
-sigma_f: 0.1
+sigma_f: 1.0
 
 # Standard deviation for the measurement noise matrix
-sigma_n: 0.1
+sigma_n: 1.0
 
 # Step control for the Kalman Gain Update Step in 
 # the filter, i.e. the mysterious factor of a 1/2.
@@ -29,7 +29,7 @@ step_control: 0.5
 # a comma separated list with
 # string quotations and they will be joined along
 # the direction axis.
-model_column: "J0"
+model_column: "MODEL"
 
 # The visibilities column to get V_pq in the ms
 vis_column: "DATA"

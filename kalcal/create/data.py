@@ -91,8 +91,13 @@ def new(ms, sky_model, gains, **kwargs):
     assert n_time == len(tbin_indices)
     assert n_ant == np.max((np.max(ant1), np.max(ant2))) + 1
     assert n_chan == dims.chan
-    assert n_corr == dims.corr        
-    assert n_dir == len(lsm.sources)
+    assert n_corr == dims.corr       
+
+    if options.die: 
+        assert n_dir == 1
+        n_dir = len(lsm.sources)
+    else:
+        assert n_dir == len(lsm.sources)
 
     # Get phase direction
     radec0_table = xds_from_table(ms + '::FIELD')[0]
@@ -186,6 +191,13 @@ def new(ms, sky_model, gains, **kwargs):
             lm[s].reshape((1, 2)), 
             freq, 
             dtype=np.complex64, convention='fourier')
+
+    # Sum over direction?
+    if options.die:
+        model_vis = np.sum(model_vis, axis=2).reshape(
+                        (n_row, n_chan, 1, n_corr))
+        n_dir = 1
+        source_names = ["MODEL"] 
 
     # Numpy to Dask
     model_vis = da.from_array(model_vis, chunks=(row_chunks, 

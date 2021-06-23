@@ -16,6 +16,9 @@ from kalcal.create.data import new as new_cmd
                 default="CODEX", show_default=True,
                 help="Choose phase-convention for UVW coordinates.")
 
+@click.option("-e", "--die", is_flag=True, 
+                help="Flag to set if gains are direction independent.")
+
 @click.option("-u", "--utime", type=int, 
                 default=1, show_default=True,
                 help="Number of unique times per chunk for dask chunking.")

@@ -2,11 +2,15 @@
 
 # Controls standard deviation of zero-mean noise generated for the noise
 # on the visibilities. If zero, it is ignored.
-std: 0.1
+std: 1.0
 
 # Phase convention of the UVW coordinates to ensure africanus functions
 # work properly. CODEX is normally fine for most cases.
 phase_convention: "CODEX"
+
+# Set if gains are direction independent, i.e.
+# no direction axis and sum over direction
+die: True
 
 # Number of unique time-steps in a chunk in a dask array. This does not
 # mean much for the filter and smoother as they are not implemented with

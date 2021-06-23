@@ -21,6 +21,9 @@ from kalcal.create.gains import new as new_cmd
                 help="If (normal), chooses differentials in [time, freq, dir] "\
                      + "else (phase) it does nothing.")
 
+@click.option("-e", "--die", is_flag=True, 
+                help="Flag to set if gains are direction independent.")
+
 @click.option("-o", "--out_file", type=str,
                 default="gains.npy", show_default=True,
                 help="Name of gains output .npy file with gains type appended.")

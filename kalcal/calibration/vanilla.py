@@ -125,7 +125,7 @@ def calibrate(ms, **kwargs):
     
     # Save filter values
     old_m = m.copy()
-
+    
     # Stop filter timer and start smoother timer
     filter_time = time() - filter_start
     smoother_start = time()
@@ -235,7 +235,7 @@ def calibrate_from_arrays(tbin_indices, tbin_counts,
         * np.eye(n_ant * (n_ant - 1) * n_chan, dtype=np.complex128) 
 
     # Variable to keep track of algorithm direction
-    a_dir = "forward"
+    a_dir = "forward" 
 
     # Run Kalman Filter for requested number of times
     total_start = filter_start = time()

@@ -44,11 +44,6 @@ from kalcal.calibration.vanilla import calibrate as calibrate_cmd
                 default="WEIGHT", show_default=True,
                 help="Name of ms column with weights.")
 
-@click.option("-o", "--out_column", type=str,
-                default="KAL_DATA", show_default=True,
-                help="Name of ms column to write filter and smoother "\
-                    + "corrected data visibilities too.")
-
 @click.option("-o", "--out_file", type=str,
                 default="gains.npy", show_default=True,
                 help="Name of calibrated gains output .npy file.")

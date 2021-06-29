@@ -87,11 +87,16 @@ def calibrate(ms, **kwargs):
     # Variable to keep track of algorithm direction
     a_dir = "forward"
 
+    # Gains files
+    gains_files = []
+
     # Run Kalman Filter for requested number of times
     total_start = filter_start = time()
+
     for i in range(options.filter):
         m, P = kalman_filter(mp, Pp, model, vis, weight, Q, R, 
-                                ant1, ant2, tbin_indices, tbin_counts)        
+                                ant1, ant2, tbin_indices, 
+                                tbin_counts, options.step_control)        
 
         # Correct flipping if last iteration
         if i == options.filter - 1:
@@ -121,11 +126,16 @@ def calibrate(ms, **kwargs):
             vis = vis[::-1]
             weight = weight[::-1]
             tbin_indices = tbin_indices[::-1] # For consistency
-            tbin_counts = tbin_counts[::-1] # For consistency
+            tbin_counts
     
-    # Save filter values
-    old_m = m.copy()
-    
+    # Output filter gains to npy file
+    if (options.which_gains.lower() == "filter"\
+        or options.which_gains.lower() == "both")\
+        and options.filter > 0:
+        gains_files.append("filter_" + options.out_file)
+        with open(gains_files[-1], 'wb') as file:            
+                np.save(file, m)
+
     # Stop filter timer and start smoother timer
     filter_time = time() - filter_start
     smoother_start = time()
@@ -157,24 +167,15 @@ def calibrate(ms, **kwargs):
     # Stop time
     stop_time = time()
     total_time = stop_time - total_start
-    smoother_time = stop_time - smoother_start
+    smoother_time = stop_time - smoother_start    
 
-    # Gains files
-    gains_files = []
-
-    # Output to wanted gains to npy file
+    # Output smoother gains to npy file
     if (options.which_gains.lower() == "smoother"\
         or options.which_gains.lower() == "both")\
         and options.smoother > 0:
         gains_files.append("smoother_" + options.out_file)
         with open(gains_files[-1], 'wb') as file:            
                 np.save(file, ms)        
-    if (options.which_gains.lower() == "filter"\
-        or options.which_gains.lower() == "both")\
-        and options.filter > 0:
-        gains_files.append("filter_" + options.out_file)
-        with open(gains_files[-1], 'wb') as file:            
-                np.save(file, old_m)
 
     # Show timer results
     print(f"==> Completed and saved to: {', '.join(gains_files)}")
@@ -237,11 +238,15 @@ def calibrate_from_arrays(tbin_indices, tbin_counts,
     # Variable to keep track of algorithm direction
     a_dir = "forward" 
 
+    # Gains files
+    gains_files = []
+
     # Run Kalman Filter for requested number of times
     total_start = filter_start = time()
     for i in range(options.filter):
         m, P = kalman_filter(mp, Pp, model, vis, weight, Q, R, 
-                                ant1, ant2, tbin_indices, tbin_counts)        
+                                ant1, ant2, tbin_indices, 
+                                tbin_counts, options.step_control)        
 
         # Correct flipping if last iteration
         if i == options.filter - 1:
@@ -273,8 +278,13 @@ def calibrate_from_arrays(tbin_indices, tbin_counts,
             tbin_indices = tbin_indices[::-1] # For consistency
             tbin_counts = tbin_counts[::-1] # For consistency
     
-    # Save filter values
-    old_m = m.copy()
+    # Output filter gains to npy file
+    if (options.which_gains.lower() == "filter"\
+        or options.which_gains.lower() == "both")\
+        and options.filter > 0:
+        gains_files.append("filter_" + options.out_file)
+        with open(gains_files[-1], 'wb') as file:            
+                np.save(file, m)
 
     # Stop filter timer and start smoother timer
     filter_time = time() - filter_start
@@ -309,22 +319,13 @@ def calibrate_from_arrays(tbin_indices, tbin_counts,
     total_time = stop_time - total_start
     smoother_time = stop_time - smoother_start
 
-    # Gains files
-    gains_files = []
-
-    # Output to wanted gains to npy file
+    # Output smoother gains to npy file
     if (options.which_gains.lower() == "smoother"\
         or options.which_gains.lower() == "both")\
         and options.smoother > 0:
         gains_files.append("smoother_" + options.out_file)
         with open(gains_files[-1], 'wb') as file:            
-                np.save(file, ms)        
-    if (options.which_gains.lower() == "filter"\
-        or options.which_gains.lower() == "both")\
-        and options.filter > 0:
-        gains_files.append("filter_" + options.out_file)
-        with open(gains_files[-1], 'wb') as file:            
-                np.save(file, old_m)
+                np.save(file, ms)  
 
     # Show timer results
     print(f"==> Completed and saved to: {', '.join(gains_files)}")

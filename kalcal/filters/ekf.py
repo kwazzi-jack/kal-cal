@@ -16,7 +16,8 @@ def sparse_algorithm(
     ant1         : np.ndarray, 
     ant2         : np.ndarray, 
     tbin_indices : np.ndarray, 
-    tbin_counts  : np.ndarray): 
+    tbin_counts  : np.ndarray,
+    alpha        : np.float64): 
 
     """Sparse-matrix implementation of EKF algorithm. Not
     numba-compiled."""
@@ -105,8 +106,8 @@ def sparse_algorithm(
         K = Pp @ J_herm @ Sinv
 
         # Record Posterior values
-        m[k] = gains_reshape(mp + K @ v/2.0, shape)
-        P[k] = np.diag(np.diag(Pp - K @ J @ Pp/2.0).real)
+        m[k] = gains_reshape(mp + alpha * K @ v, shape)
+        P[k] = np.diag(np.diag(Pp - alpha * K @ J @ Pp).real)
 
     # Newline
     print()
@@ -128,7 +129,7 @@ def numba_algorithm(
     ant2         : np.ndarray, 
     tbin_indices : np.ndarray, 
     tbin_counts  : np.ndarray,
-    mtype        : str='csr'):  
+    alpha        : np.float64):  
 
     """Numpy-matrix implementation of EKF algorithm. It is
     numba-compiled."""
@@ -172,9 +173,9 @@ def numba_algorithm(
     
     # Calculate R^{-1} for a diagonal
     Rinv = np.diag(1.0/np.diag(R))
-    
+
     # Run Extended Kalman Filter with 
-    # Sparse matrices
+    # NUMPY matrices
     head = "==> Extended Kalman Filter (NUMPY|JIT): "
     for k in range(1, n_time): 
         
@@ -209,28 +210,28 @@ def numba_algorithm(
         # Calculate Measure Vector
         y = measure_vector(vis_slice, weight_slice, 
                             n_ant, n_chan)        
-
+    
         # Update Step
 
-        # ! NORMAL IMPLEMENTATION (FULL)
+        # #! NORMAL IMPLEMENTATION (FULL)
         # v = y - J @ mp        
-        # Pinv = 1.0/np.diag(Pp)    
-        # Tinv = 1.0/(Pinv + np.diag(J_herm @ Rinv @ J)).reshape((-1, 1))
-        # Sinv = Rinv - Rinv @ J @ (Tinv * J_herm) @ Rinv
+        # Pinv = np.diag(1.0/np.diag(Pp))       
+        # Tinv = np.linalg.inv(Pinv + J_herm @ Rinv @ J)
+        # Sinv = Rinv - Rinv @ J @ Tinv @ J_herm @ Rinv
         # K = Pp @ J_herm @ Sinv
 
         # # Record Posterior values
-        # m[k] = gains_reshape(mp + K @ v/2.0, shape)
-        # P[k] = np.diag(np.diag(Pp - K @ J @ Pp/2.0).real)
+        # m[k] = gains_reshape(mp + alpha * K @ v, shape)
+        # P[k] = np.diag(np.diag(Pp - alpha * K @ J @ Pp).real)
 
-        # # DIAGONALISATION IMPLEMENTATION
+        # DIAGONALISATION IMPLEMENTATION
         v = y - J @ mp 
         p = np.diag(Pp)
         pinv = 1.0/p
         u = np.diag(J_herm @ Rinv @ J) # Diagonal of JHJ
         z = J_herm @ Rinv @ v          # JHr
-        est_m = mp + 1/2 * z / (pinv + u)
-        est_P = 1/2 * p + 0.5 / (pinv + u)
+        est_m = mp + alpha * z / (pinv + u)
+        est_P = (1 - alpha) * p + alpha / (pinv + u)
         
         # Record Posterior values
         m[k] = gains_reshape(est_m, shape)

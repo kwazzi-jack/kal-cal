@@ -41,7 +41,7 @@ def numba_algorithm(
         Pp = Pt + Q
 
         # Smooth Step
-        Pinv = np.linalg.inv(Pp).astype(np.complex128)
+        Pinv = np.diag(1.0/np.diag(Pp))
         G = Pt @ Pinv
 
         # Record Posterior Smooth Values

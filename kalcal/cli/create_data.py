@@ -27,6 +27,14 @@ from kalcal.create.data import new as new_cmd
                 default=-1, show_default=True,
                 help="Number of cpu-cores for dask to use. For all, use -1.")
 
+@click.option("-m", "--mname", type=str, 
+                default="MODEL", show_default=True,
+                help="Name of the column in ms to output model-visibilities to.")
+
+@click.option("-d", "--dname", type=str, 
+                default="DATA", show_default=True,
+                help="Name of the column in ms to output visibilities to.")
+
 @click.option("-y", "--yaml", type=str,
                 help="Path to yaml config file.")
 

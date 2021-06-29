@@ -1,9 +1,11 @@
+from re import M
 import numpy as np
 import Tigger
 import dask.array as da 
 from daskms import xds_from_ms, xds_from_table, xds_to_table
 from africanus.coordinates import radec_to_lm
 from africanus.calibration.utils import chunkify_rows
+from africanus.calibration.utils.dask import compute_and_corrupt_vis
 from africanus.dft.dask import im_to_vis
 from africanus.model.coherency.dask import convert
 from africanus.calibration.utils.dask import corrupt_vis
@@ -81,18 +83,24 @@ def new(ms, sky_model, gains, **kwargs):
         uvw = MS.UVW.data.astype(np.float64)
     else:
         raise ValueError("Unknown sign convention for phase.")
+    
+    # MS dimensions
+    dims = ocf.create(dict(MS.sizes))
+
+    # Close MS
+    MS.close()
 
     # Build source model from lsm
     lsm = Tigger.load(sky_model)
 
-    # Check if dimensions match jones
-    dims = ocf.create(dict(MS.sizes))
+    # Check if dimensions match jones    
     assert n_time * (n_ant * (n_ant - 1)//2) == dims.row
     assert n_time == len(tbin_indices)
     assert n_ant == np.max((np.max(ant1), np.max(ant2))) + 1
     assert n_chan == dims.chan
     assert n_corr == dims.corr       
 
+    # If gains are DIE    
     if options.die: 
         assert n_dir == 1
         n_dir = len(lsm.sources)
@@ -102,10 +110,12 @@ def new(ms, sky_model, gains, **kwargs):
     # Get phase direction
     radec0_table = xds_from_table(ms + '::FIELD')[0]
     radec0 = radec0_table.PHASE_DIR.data.squeeze().compute()
-    
+    radec0_table.close()
+
     # Get frequency column
     freq_table = xds_from_table(ms + '::SPECTRAL_WINDOW')[0]
     freq = freq_table.CHAN_FREQ.data.astype(np.float64)[0]
+    freq_table.close()
 
     # Create initial model array
     model = np.zeros((n_dir, n_chan, n_corr), dtype=np.float64)
@@ -172,108 +182,82 @@ def new(ms, sky_model, gains, **kwargs):
             # Generate model flux
             model[d, :, 3] = V0 * (freq/ref_freq)**spi
 
+    # Close sky-model
+    del lsm
+    
     # Build dask graph
     tbin_indices = da.from_array(tbin_indices, chunks=(options.utime))
     tbin_counts = da.from_array(tbin_counts, chunks=(options.utime))
     lm = da.from_array(lm, chunks=lm.shape)
     model = da.from_array(model, chunks=model.shape)
     jones = da.from_array(jones, chunks=(options.utime,) + jones.shape[1::])
-
-    # Get model visibilities
-    model_vis = np.zeros((n_row, n_chan, n_dir, n_corr), 
-                            dtype=np.complex128)
     
     # Apply image to visibility for each source
+    sources = []
     for s in range(n_dir):
-        model_vis[:, :, s] = im_to_vis(
-            model[s].reshape((1, n_chan, n_corr)),
-            uvw, 
-            lm[s].reshape((1, 2)), 
-            freq, 
-            dtype=np.complex64, convention='fourier')
+        source_vis = im_to_vis(model[s].reshape((1, n_chan, n_corr)), uvw, 
+                        lm[s].reshape((1, 2)), freq, dtype=np.complex64, 
+                        convention='fourier')
 
+        sources.append(source_vis)
+    model_vis = da.stack(sources, axis=2)
+    
     # Sum over direction?
     if options.die:
-        model_vis = np.sum(model_vis, axis=2).reshape(
-                        (n_row, n_chan, 1, n_corr))
+        model_vis = da.sum(model_vis, axis=2, keepdims=True)
         n_dir = 1
-        source_names = ["MODEL"] 
-
-    # Numpy to Dask
-    model_vis = da.from_array(model_vis, chunks=(row_chunks, 
-                                n_chan, n_dir, n_corr))
-
-    # Get feed orientation
-    feed_table = xds_from_table(ms + '::FEED')[0]
-    feeds = feed_table.POLARIZATION_TYPE.data[0].compute()
-
-    # Select schema based on feed orientation
-    if (feeds == ["X", "Y"]).all():
-        out_schema = [["XX", "XY"], ["YX", "YY"]]
-    elif (feeds == ["R", "L"]).all():
-        out_schema = [['RR', 'RL'], ['LR', 'LL']]
-    else:
-        raise ValueError("Unknown feed orientation implementation.")
-
-    # Convert Stokes to Correlations
-    in_schema = ['I', 'Q', 'U', 'V']
-    model_vis = convert(model_vis, in_schema, out_schema)
+        source_names = [options.mname] 
     
-    # Apply gains (Problem here <!!!> Corrupt vis providing corrupted dask array?)
+    # Apply gains to model_vis
     print("==> Corrupting visibilities")
-    data = corrupt_vis(tbin_indices, tbin_counts, ant1, ant2,
-                            jones, model_vis).compute().reshape(
-                            (n_row, n_chan, n_corr)) 
-                            # When left as dask array, shape is incorrect to axes
-                            # So cannot reshape
-    
-    # Change back to dask
-    data = da.from_array(data, chunks=(row_chunks, 
-                                n_chan, n_corr))
 
+    data = corrupt_vis(tbin_indices, tbin_counts, ant1, ant2,
+                            jones, model_vis)
+
+    # Reopen MS
+    MS = xds_from_ms(ms, chunks={"row": row_chunks})[0]
+    
     # Assign model visibilities
     out_names = []
     for d in range(n_dir):
         MS = MS.assign(**{source_names[d]: 
                 (("row", "chan", "corr"), 
-                model_vis[:, :, d].reshape(
-                    n_row, n_chan, n_corr).astype(np.complex64))})
+                model_vis[:, :, d].astype(np.complex64))})
 
         out_names += [source_names[d]]
-
+    
     # Assign noise free visibilities to 'CLEAN_DATA'
-    MS = MS.assign(**{'CLEAN_DATA': (("row", "chan", "corr"), 
+    MS = MS.assign(**{'CLEAN_' + options.dname: (("row", "chan", "corr"), 
             data.astype(np.complex64))})
 
-    out_names += ['CLEAN_DATA']
+    out_names += ['CLEAN_' + options.dname]
     
     # Get noise realisation
     if options.std > 0.0:
     
         # Noise matrix
         print(f"==> Applying noise (std={options.std}) to visibilities")
-        noise = (da.random.normal(loc=0.0, scale=options.std, 
-                    size=(n_row, n_chan, n_corr), 
-                    chunks=(row_chunks, n_chan, n_corr)) \
+        noise = []
+        for i in range(2):
+            real = da.random.normal(loc=0.0, scale=options.std, 
+                        size=(n_row, n_chan), 
+                        chunks=(row_chunks, n_chan))
+            imag = 1.0j*(da.random.normal(loc=0.0, scale=options.std, 
+                        size=(n_row, n_chan), 
+                        chunks=(row_chunks, n_chan)))
+            noise.append(real + imag)
 
-                + 1.0j*da.random.normal(loc=0.0, scale=options.std, 
-                    size=(n_row, n_chan, n_corr), 
-                    chunks=(row_chunks, n_chan, n_corr)))/np.sqrt(2.0)
 
         # Zero matrix for off-diagonals
-        zero = da.zeros_like(noise[:, :, 0])
+        zero = da.zeros((n_row, n_chan), chunks=(row_chunks, n_chan))
 
-        # Dask to NP
-        noise = noise.compute()
-        zero = zero.compute()
-
-        # Remove noise on off-diagonals
-        noise[:, :, 1] = zero[:, :]
-        noise[:, :, 2] = zero[:, :]
+        noise.insert(1, zero)
+        noise.insert(2, zero)
 
         # NP to Dask
-        noise = da.from_array(noise, chunks=(row_chunks, n_chan, n_corr))
-        
+        noise = da.stack(noise, axis=2).rechunk((
+                    row_chunks, n_chan, n_corr))
+
         # Assign noise to 'NOISE'
         MS = MS.assign(**{'NOISE': (("row", "chan", "corr"), 
                 noise.astype(np.complex64))})
@@ -282,14 +266,15 @@ def new(ms, sky_model, gains, **kwargs):
 
         # Add noise to data and assign to 'DATA'
         noisy_data = data + noise
-        MS = MS.assign(**{'DATA': (("row", "chan", "corr"), 
+        
+        MS = MS.assign(**{options.dname: (("row", "chan", "corr"), 
                 noisy_data.astype(np.complex64))})
 
-        out_names += ['DATA']
-        
+        out_names += [options.dname]
+    
     # Create a write to the table
     write = xds_to_table(MS, ms, out_names)
-
+    
     # Submit all graph computations in parallel
     print(f"==> Executing `dask-ms` write to `{ms}` for the following columns: "\
             + f"{', '.join(out_names)}")

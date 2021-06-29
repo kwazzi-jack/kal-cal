@@ -11,21 +11,21 @@ pos_type: 'ascii'
 
 # Angle of declination and right ascension. The space
 # is important infront of the value IF negative.
-dec: ' -30d0m0s' 
-ra: '0h0m0s'    
+dec: ' -30d15m0s' 
+ra: '11h50m0s'    
 
 # Synthesis time (in hours and same as scan-length) 
 # and integration time (in seconds). To work out 
 # time-steps you would like, use the following formula:
 #     n_time = 3600 * synthesis // dtime
-synthesis: 5
-dtime: 60
+synthesis: 10
+dtime: 50
 
 # Initial frequency, number of channels and space
 # between channels
-freq0: "1.4GHz"
+freq0: "1GHz"
 nchan: "1"
 dfreq: "10MHz"
 
 # Polarization for the antenna feeds
-stokes: "RR RL LR LL"
+stokes: "XX XY YX YY"

@@ -15,7 +15,7 @@ smoother: 3
 algorithm: "NUMBA"
 
 # Standard deviation for the process noise matrix
-sigma_f: 1.0
+sigma_f: 0.2
 
 # Standard deviation for the measurement noise matrix
 sigma_n: 1.0

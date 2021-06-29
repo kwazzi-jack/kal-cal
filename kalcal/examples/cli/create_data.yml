@@ -22,3 +22,7 @@ utime: 1
 # it will attempt to use ALL cores (which will make you public enemy
 # number one on Rhodes Clusters.)
 ncpu: 8
+
+# Name of columns to output the model-visibilities and visibilities to.
+dname: "DATA"
+mname: "MODEL"

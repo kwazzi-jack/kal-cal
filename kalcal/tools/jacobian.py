@@ -1,9 +1,9 @@
 import numpy as np
 from scipy import sparse
-from numba import njit
+from numba import njit, prange
 
 
-@njit(parallel=False, fastmath=True, nogil=True)
+@njit(parallel=True, fastmath=True, nogil=True)
 def _construct_coo_lists(
     model : np.ndarray, 
     weight : np.ndarray, 
@@ -23,24 +23,17 @@ def _construct_coo_lists(
     data = np.zeros(n_terms, dtype=np.complex128)
 
     # Populate lists
-    for row in range(n_row):
+    for s in prange(n_dir):
+        for nu in prange(n_chan):
+            for row in prange(n_row):
 
-        # Antenna pairings
-        p = antenna1[row]
-        q = antenna2[row]
+                # Antenna pairings
+                p = antenna1[row]
+                q = antenna2[row]
 
-        # Square-root of weight
-        sqrtW = np.sqrt(weight[row])
-        
-        # Jones elements
-        gp = jones[p]
-        gq = jones[q]
-        
-        # Model element
-        M = model[row]
-        
-        for nu in range(n_chan):
-            for s in range(n_dir):
+                # Square-root of weight
+                sqrtW = np.sqrt(weight[row])
+
                 # Term index
                 n = 2 * (s + n_dir * nu + n_dir * n_chan * row)
 
@@ -53,11 +46,10 @@ def _construct_coo_lists(
                 cols[n + 1] = n_ant * n_dir * nu + n_ant * s + q
                 
                 # Data-values
-                data[n] = sqrtW * M[nu, s]\
-                            * gq[nu, s].conjugate()
-                data[n + 1] = sqrtW * M[nu, s].conjugate()\
-                                * gp[nu, s].conjugate()
-                            
+                data[n] = sqrtW * model[row, nu, s]\
+                            * jones[q, nu, s].conjugate()
+                data[n + 1] = sqrtW * model[row, nu, s].conjugate()\
+                            * jones[p, nu, s].conjugate()                            
       
     return data, rows, cols
 
@@ -110,17 +102,17 @@ def compute_aug_csr(
             antenna1, antenna2).tocsr().astype(np.complex128)
 
 
-@njit(fastmath=True, nogil=True)
+@njit(parallel=True, fastmath=True, nogil=True)
 def _build_np_matrix(
     model : np.ndarray, 
     weight : np.ndarray, 
-    aug_jones : np.ndarray,
+    jones : np.ndarray,
     antenna1 : np.ndarray, 
     antenna2 : np.ndarray
     ):
 
     # Dimension 
-    n_ant, n_chan, n_dir = aug_jones.shape
+    n_ant, n_chan, n_dir = jones.shape
     n_row = model.shape[0]
     jac_shape = (n_chan * n_ant * (n_ant - 1),
                     n_chan * n_dir * n_ant)
@@ -129,24 +121,17 @@ def _build_np_matrix(
     jacobian = np.zeros(jac_shape, dtype=np.complex128)
 
     # Populate lists
-    for row in range(n_row):
+    for s in prange(n_dir):
+        for nu in prange(n_chan):
+            for row in prange(n_row):
 
-        # Antenna pairings
-        p = antenna1[row]
-        q = antenna2[row]
+                # Antenna pairings
+                p = antenna1[row]
+                q = antenna2[row]
 
-        # Square-root of weight
-        sqrtW = np.sqrt(weight[row])
-        
-        # Jones elements
-        gp = aug_jones[p]
-        gq = aug_jones[q]
+                # Square-root of weight
+                sqrtW = np.sqrt(weight[row])
 
-        # Model element
-        M = model[row]
-
-        for nu in range(n_chan):
-            for s in range(n_dir):
                 # Row Indices
                 r1 = 2 * n_row * nu + row
                 r2 = r1 + n_row
@@ -156,10 +141,10 @@ def _build_np_matrix(
                 c2 = n_ant * n_dir * nu + n_ant * s + q
                 
                 # Data-values
-                jacobian[r1, c1] = sqrtW * M[nu, s]\
-                                    * gq[nu, s].conjugate()
-                jacobian[r2, c2] = sqrtW * M[nu, s].conjugate()\
-                                    * gp[nu, s].conjugate()
+                jacobian[r1, c1] = sqrtW * model[row, nu, s]\
+                                    * jones[q, nu, s].conjugate()
+                jacobian[r2, c2] = sqrtW * model[row, nu, s].conjugate()\
+                                    * jones[p, nu, s].conjugate()
 
     return jacobian
 

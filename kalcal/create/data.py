@@ -117,6 +117,10 @@ def new(ms, sky_model, gains, **kwargs):
     freq = freq_table.CHAN_FREQ.data.astype(np.float64)[0]
     freq_table.close()
 
+    # Get feed orientation
+    feed_table = xds_from_table(ms + '::FEED')[0]
+    feeds = feed_table.POLARIZATION_TYPE.data[0].compute()
+
     # Create initial model array
     model = np.zeros((n_dir, n_chan, n_corr), dtype=np.float64)
 
@@ -201,12 +205,25 @@ def new(ms, sky_model, gains, **kwargs):
 
         sources.append(source_vis)
     model_vis = da.stack(sources, axis=2)
-    
+
     # Sum over direction?
     if options.die:
         model_vis = da.sum(model_vis, axis=2, keepdims=True)
         n_dir = 1
         source_names = [options.mname] 
+
+    # Select schema based on feed orientation
+    if (feeds == ["X", "Y"]).all():
+        out_schema = [["XX", "XY"], ["YX", "YY"]]
+    elif (feeds == ["R", "L"]).all():
+        out_schema = [['RR', 'RL'], ['LR', 'LL']]
+    else:
+        raise ValueError("Unknown feed orientation implementation.")
+
+    # Convert Stokes to Correlations
+    in_schema = ['I', 'Q', 'U', 'V']
+    model_vis = convert(model_vis, in_schema, out_schema).reshape(
+                    (n_row, n_chan, n_dir, n_corr))
     
     # Apply gains to model_vis
     print("==> Corrupting visibilities")

@@ -105,7 +105,7 @@ def calibrate(msname, **kwargs):
         raise ValueError("Cannot identify correlation shape.")
     
     # Gains solutions (@Landman: Have to do this to get around 
-    # correct_vis fn as it does a complex division by zero from
+    # correct_vis fn as it does a complex division by zero for
     # gains correlations equal to zero, i.e. off-diagonals)
     filter_gains = np.ones((n_time, n_ant, n_chan, n_dir, n_corr, 2),
                                 dtype=np.complex128)
@@ -227,6 +227,10 @@ def calibrate(msname, **kwargs):
     print("==> Calibration complete.")
 
     # Correct Visibilties
+    # @Landman: Feeding it (n_time, n_ant, n_chan, n_dir, n_corr=4),
+    # with last index removing the augmented part. This all works fine
+    # and I've checked and works for now. The ones in the gains matrices
+    # do not affect the off-diagonals since vis is zero on off-diagonals.
     corrected_data = correct_vis(
         tbin_indices,
         tbin_counts,

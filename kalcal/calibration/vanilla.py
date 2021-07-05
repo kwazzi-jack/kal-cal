@@ -104,11 +104,13 @@ def calibrate(msname, **kwargs):
         # (2 x 2) not implemented yet
         raise ValueError("Cannot identify correlation shape.")
     
-    # Gains solutions
-    filter_gains = np.zeros((n_time, n_ant, n_chan, n_dir, n_corr, 2),
+    # Gains solutions (@Landman: Have to do this to get around 
+    # correct_vis fn as it does a complex division by zero from
+    # gains correlations equal to zero, i.e. off-diagonals)
+    filter_gains = np.ones((n_time, n_ant, n_chan, n_dir, n_corr, 2),
                                 dtype=np.complex128)
 
-    smooth_gains = np.zeros((n_time, n_ant, n_chan, n_dir, n_corr, 2),
+    smooth_gains = np.ones((n_time, n_ant, n_chan, n_dir, n_corr, 2),
                                 dtype=np.complex128)
 
     # Run algorithm on each correlation independently
@@ -223,15 +225,6 @@ def calibrate(msname, **kwargs):
             + f"total taken: {np.round(total_time, 3)} s")
 
     print("==> Calibration complete.")
-    # Output filter gains to npy file
-    with open(options.out_filter, "wb") as file:
-        np.save(file, filter_gains)
-    print(f"==> Filter gains saved to `{options.out_filter}`")
-
-    # Output smoother gains to npy file
-    with open(options.out_smoother, "wb") as file:
-        np.save(file, smooth_gains)    
-    print(f"==> Smoother gains saved to `{options.out_smoother}`")
 
     # Correct Visibilties
     corrected_data = correct_vis(
@@ -242,23 +235,39 @@ def calibrate(msname, **kwargs):
         smooth_gains[..., 0],
         vis,
         flag
-    )(
-        tbin_indices,
-        tbin_counts,
-        ant1,
-        ant2,
-        smooth_gains[..., 0],
-        vis,
-        flag
     ).reshape((n_row, n_chan, n_corr))
-    exit()
+    
+    # To dask
     corrected_data = da.from_array(corrected_data)
+
+    # Assign and write to ms
     MS = MS.assign(**{options.out_data: (("row", "chan", "corr"), 
                 corrected_data.astype(np.complex64))})
     write = xds_to_table(MS, msname, [options.out_data])
 
+    # Begin writing
+    print(f"==> Writing corrected smoother visibilties to `{options.out_data}`")
     with ProgressBar():
         write.compute()
+
+    # Remove ones from gains solutions if DIAG mode
+    # TEMP FIX: Should be reconsidered as this is janky
+    if mode == "DIAG":
+        zeros = np.zeros((n_time, n_ant, n_chan, n_dir, 2))
+        filter_gains[..., 1, :] = zeros
+        filter_gains[..., 2, :] = zeros
+        smooth_gains[..., 1, :] = zeros
+        smooth_gains[..., 2, :] = zeros
+
+    # Output filter gains to npy file
+    with open(options.out_filter, "wb") as file:
+        np.save(file, filter_gains)
+    print(f"==> Filter gains saved to `{options.out_filter}`")
+
+    # Output smoother gains to npy file
+    with open(options.out_smoother, "wb") as file:
+        np.save(file, smooth_gains)    
+    print(f"==> Smoother gains saved to `{options.out_smoother}`")
 
 def calibrate_from_arrays(tbin_indices, tbin_counts, 
             ant1, ant2, vis, model, weight, **kwargs):

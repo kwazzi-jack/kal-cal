@@ -18,40 +18,43 @@ from kalcal.calibration.vanilla import calibrate as calibrate_cmd
                 default="NUMBA", show_default=True,
                 help="Algorithm optimization to use for the filter.")
 
-@click.option("-q", "--sigma_f", type=float, 
+@click.option("-q", "--sigma-f", type=float, 
                 default=0.1, show_default=True,
                 help="State noise for the gains evolution system.")
 
-@click.option("-r", "--sigma_n", type=float,
+@click.option("-r", "--sigma-n", type=float,
                 help="Measurement noise for the visibilities evolution system, "\
                     + "otherwise inferred via weights from ms.")
 
-@click.option("-c", "--step_control", type=float, 
+@click.option("--step-control", type=float, 
                 default=1/2, show_default=True,
                 help="Step-control on filter update step.")
 
-@click.option("-m", "--model_column", type=str, 
+@click.option("--model-column", type=str, 
                 default="MODEL_VIS", show_default=True,
                 help="Name of ms column with model visibilities. If there "\
                     + "are multiple columns, comma separate them and add "\
                     + "quotations to indicate a string.")
 
-@click.option("-v", "--vis_column", type=str, 
+@click.option("--vis-column", type=str, 
                 default="DATA", show_default=True,
                 help="Name of ms column with data visibilities.")
 
-@click.option("-w", "--weight_column", type=str, 
+@click.option("--weight-column", type=str, 
                 default="WEIGHT", show_default=True,
                 help="Name of ms column with weights.")
 
-@click.option("-o", "--out_file", type=str,
-                default="gains.npy", show_default=True,
-                help="Name of calibrated gains output .npy file.")
+@click.option("--out-filter", type=str, 
+                default="filter.npy", show_default=True,
+                help="Output .npy file for filter calibrated gains.")
 
-@click.option("-w", "--which_gains",
-                type=click.Choice(["SMOOTHER", "FILTER", "BOTH"], case_sensitive=False),
-                default="SMOOTHER", show_default=True,
-                help="Which calibrated gains should be outputted?")
+@click.option("--out-smoother", type=str, 
+                default="smoother.npy", show_default=True,
+                help="Output .npy file for smoother calibrated gains.")
+
+@click.option("--out-data", type=str, 
+                default="CORRECTED_DATA", show_default=True,
+                help="Name of ms column to put corrected data in.")
 
 @click.option("-y", "--yaml", type=str,
                 help="Path to yaml config file.")

@@ -117,8 +117,16 @@ def gains(**kwargs):
             plot = plots[n]
             # This works because I'm assuming:
             # true_jones.shape = (n_time, n_ant, n_chan, n_dir, n_corr)
-            # kalman_jones.shape = (n_time, n_ant, n_chan, n_dir, n_aug)
-            jones = plot["jones"][:, :, :, :, 0]
+            # kalman_jones.shape = (n_time, n_ant, n_chan, n_dir, n_corr, n_aug)
+            jones = plot["jones"]
+            
+            if jones.ndim == 5:
+                jones = jones[:, :, :, :, 0]
+            elif jones.ndim == 6:
+                jones = jones[:, :, :, :, 0, 0]
+            else:
+                raise ValueError("Only accept jones with 5 or 6 dimensions.")
+
             label = plot["label"]
             color = plot["color"]
             linestyle = plot["linestyle"]

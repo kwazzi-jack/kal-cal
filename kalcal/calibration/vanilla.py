@@ -70,7 +70,7 @@ def calibrate(msname, **kwargs):
 
     # Get flag column
     flag = MS.FLAG.data.compute()
-
+    
     # Set time dimension
     n_time = len(tbin_indices)
 
@@ -107,17 +107,18 @@ def calibrate(msname, **kwargs):
     # Gains solutions (@Landman: Have to do this to get around 
     # correct_vis fn as it does a complex division by zero for
     # gains correlations equal to zero, i.e. off-diagonals)
-    filter_gains = np.ones((n_time, n_ant, n_chan, n_dir, n_corr, 2),
+    filter_gains = np.zeros((n_time, n_ant, n_chan, n_dir, n_corr, 2),
                                 dtype=np.complex128)
 
-    smooth_gains = np.ones((n_time, n_ant, n_chan, n_dir, n_corr, 2),
+    smooth_gains = np.zeros((n_time, n_ant, n_chan, n_dir, n_corr, 2),
                                 dtype=np.complex128)
 
     # Run algorithm on each correlation independently
     print(f"==> Correlation Mode: {mode}")
+    
     for i, c in enumerate(corr):
         print(f"==> Running corr={c} ({i + 1}/{len(corr)})")
-
+        
         # Get data related to correlation
         cmodel = model[..., c]
         cvis = vis[..., c]
@@ -231,16 +232,22 @@ def calibrate(msname, **kwargs):
     # with last index removing the augmented part. This all works fine
     # and I've checked and works for now. The ones in the gains matrices
     # do not affect the off-diagonals since vis is zero on off-diagonals.
+    with open("gains_full/true_gains.npy", "rb") as file:
+        jones = np.load(file)
+
     corrected_data = correct_vis(
         tbin_indices,
         tbin_counts,
         ant1,
         ant2,
-        smooth_gains[..., 0],
-        vis,
-        flag
-    ).reshape((n_row, n_chan, n_corr))
+        smooth_gains[:, :, :, :, [0, 3], 0],
+        vis[:, :, [0, 3]],
+        flag[:, :, [0, 3]]
+    )#.reshape((n_row, n_chan, 4))
     
+    zero = np.zeros((n_row, n_chan), dtype=vis.dtype)
+
+    corrected_data = np.stack((corrected_data[..., 0], zero, zero, corrected_data[..., 1]), axis=-1)
     # To dask
     corrected_data = da.from_array(corrected_data)
 
@@ -262,7 +269,7 @@ def calibrate(msname, **kwargs):
         filter_gains[..., 2, :] = zeros
         smooth_gains[..., 1, :] = zeros
         smooth_gains[..., 2, :] = zeros
-
+    
     # Output filter gains to npy file
     with open(options.out_filter, "wb") as file:
         np.save(file, filter_gains)

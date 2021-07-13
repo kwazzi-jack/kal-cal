@@ -124,7 +124,7 @@ def sparse_algorithm(
     return m, P
 
 
-@jit(nopython=True, fastmath=True)
+# @jit(nopython=True, fastmath=True)
 def numba_algorithm(
     mp           : np.ndarray,
     Pp           : np.ndarray,

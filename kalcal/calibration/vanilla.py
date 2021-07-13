@@ -235,19 +235,19 @@ def calibrate(msname, **kwargs):
     with open("gains_full/true_gains.npy", "rb") as file:
         jones = np.load(file)
 
-    print(ant1[0:5], ant2[0:5])
-    print(jones.shape)
-    print(smooth_gains.shape)
-    print(smooth_gains[:, :, :, :, [0, 3], 0].shape)
-    print(vis[:, :, [0, 3]].shape)
+    # print(ant1[0:5], ant2[0:5])
+    # print(jones.shape)
+    # print(smooth_gains.shape)
+    # print(smooth_gains[:, :, :, :, [0, 3], 0].shape)
+    # print(vis[:, :, [0, 3]].shape)
 
-    quit()
+    # quit()
 
     corrected_data = correct_vis(
         tbin_indices,
         tbin_counts,
-        ant1,
         ant2,
+        ant1,
         smooth_gains[:, :, :, :, [0, 3], 0],
         vis[:, :, [0, 3]],
         flag[:, :, [0, 3]]

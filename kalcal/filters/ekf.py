@@ -239,6 +239,9 @@ def numba_algorithm(
         pinv = 1.0/p
         # u = np.diag(J_herm @ Rinv @ J) # Diagonal of JHJ
         # z = J_herm @ Rinv @ v
+        print(J_herm.shape, J_herm.dtype)
+        tmp = Rinv[:, None] *  J
+        print(tmp.shape, tmp.dtype)
         u = diag_dot(J_herm, Rinv[:, None] *  J)
         z = J_herm @ Rinv * v          # JHr
         est_m = mp + alpha * z / (pinv + u)

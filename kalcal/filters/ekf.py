@@ -4,20 +4,28 @@ from kalcal.tools.utils import gains_vector, gains_reshape, measure_vector, prog
 from kalcal.tools.jacobian import compute_aug_csr, compute_aug_np
 from kalcal.tools.sparseops import csr_dot_vec
 
+@jit(nopython=True, nogil=True, cache=True, inline='always')
+def diag_dot(A, B):
+    N = A.shape[0]
+    C = np.zeros(N)
+    for i in range(N):
+        for j in range(N):
+            C[i] += A[i, j] * B[j, i]
+    return C
 
 def sparse_algorithm(
-    mp           : np.ndarray, 
-    Pp           : np.ndarray, 
-    model        : np.ndarray, 
-    vis          : np.ndarray, 
-    weight       : np.ndarray, 
-    Q            : np.ndarray, 
-    R            : np.ndarray, 
-    ant1         : np.ndarray, 
-    ant2         : np.ndarray, 
-    tbin_indices : np.ndarray, 
+    mp           : np.ndarray,
+    Pp           : np.ndarray,
+    model        : np.ndarray,
+    vis          : np.ndarray,
+    weight       : np.ndarray,
+    Q            : np.ndarray,
+    R            : np.ndarray,
+    ant1         : np.ndarray,
+    ant2         : np.ndarray,
+    tbin_indices : np.ndarray,
     tbin_counts  : np.ndarray,
-    alpha        : np.float64): 
+    alpha        : np.float64):
 
     """Sparse-matrix implementation of EKF algorithm. Not
     numba-compiled."""
@@ -30,14 +38,14 @@ def sparse_algorithm(
 
     # Number of Antennas
     n_ant = int((np.sqrt(8*n_bl + 1) + 1))//2
-    
+
     # Dimensions
     n_chan, n_dir = model.shape[1:]
 
     # Matrix-size
     axis_length = n_ant * n_chan * n_dir
 
-    # Original matrix size    
+    # Original matrix size
     gains_shape = (n_time, n_ant, n_chan, n_dir, 2)
 
     # Jacobian shape
@@ -51,21 +59,21 @@ def sparse_algorithm(
 
     # Covariance matrices
     P = np.zeros(covs_shape, dtype=np.complex128)
-    
+
     # Initial state and covariance
     m[0] = gains_reshape(mp, shape)
     P[0] = Pp
-    
-    # Select CSR jacobian function 
+
+    # Select CSR jacobian function
     aug_jac = compute_aug_csr
-    
+
     # Calculate R^{-1} for a diagonal
     Rinv = np.diag(1.0/np.diag(R))
-    
-    # Run Extended Kalman Filter with 
+
+    # Run Extended Kalman Filter with
     # Sparse matrices
     head = "==> Extended Kalman Filter (SPARSE): "
-    for k in range(1, n_time): 
+    for k in range(1, n_time):
 
         # Progress Bar
         progress_bar(head, n_time, k)
@@ -73,11 +81,11 @@ def sparse_algorithm(
         # Predict Step
         mp = gains_vector(m[k - 1])
         Pp = P[k - 1] + Q
-        
+
         # Slice indices
         start = tbin_indices[k - 1]
         end = start + tbin_counts[k - 1]
-        
+
         # Calculate Slices
         row_slice = slice(start, end)
         vis_slice = vis[row_slice]
@@ -85,22 +93,22 @@ def sparse_algorithm(
         weight_slice = weight[row_slice]
         ant1_slice = ant1[row_slice]
         ant2_slice = ant2[row_slice]
-        jones_slice = m[k - 1]        
+        jones_slice = m[k - 1]
 
         # Calculate Augmented Jacobian
-        J = aug_jac(model_slice, weight_slice, 
+        J = aug_jac(model_slice, weight_slice,
                         jones_slice, ant1_slice, ant2_slice)
-        
+
         # Hermitian of Jacobian
         J_herm = J.conjugate().T
-        
+
         # Calculate Measure Vector
-        y = measure_vector(vis_slice, weight_slice, 
-                            n_ant, n_chan)        
-        
+        y = measure_vector(vis_slice, weight_slice,
+                            n_ant, n_chan)
+
         # Update Step
-        v = y - csr_dot_vec(J, mp) 
-        Pinv = np.diag(1.0/np.diag(Pp))       
+        v = y - csr_dot_vec(J, mp)
+        Pinv = np.diag(1.0/np.diag(Pp))
         Tinv = np.linalg.inv(Pinv + J_herm @ Rinv @ J)
         Sinv = Rinv - Rinv @ J @ Tinv @ J_herm @ Rinv
         K = Pp @ J_herm @ Sinv
@@ -118,18 +126,18 @@ def sparse_algorithm(
 
 @jit(nopython=True, fastmath=True)
 def numba_algorithm(
-    mp           : np.ndarray, 
-    Pp           : np.ndarray, 
-    model        : np.ndarray, 
-    vis          : np.ndarray, 
-    weight       : np.ndarray, 
-    Q            : np.ndarray, 
-    R            : np.ndarray, 
-    ant1         : np.ndarray, 
-    ant2         : np.ndarray, 
-    tbin_indices : np.ndarray, 
+    mp           : np.ndarray,
+    Pp           : np.ndarray,
+    model        : np.ndarray,
+    vis          : np.ndarray,
+    weight       : np.ndarray,
+    Q            : np.ndarray,
+    R            : np.ndarray,
+    ant1         : np.ndarray,
+    ant2         : np.ndarray,
+    tbin_indices : np.ndarray,
     tbin_counts  : np.ndarray,
-    alpha        : np.float64):  
+    alpha        : np.float64):
 
     """Numpy-matrix implementation of EKF algorithm. It is
     numba-compiled."""
@@ -149,7 +157,7 @@ def numba_algorithm(
     # Matrix-size
     axis_length = n_ant * n_chan * n_dir
 
-    # Original matrix size    
+    # Original matrix size
     gains_shape = (n_time, n_ant, n_chan, n_dir, 2)
 
     # Jacobian shape
@@ -163,34 +171,35 @@ def numba_algorithm(
 
     # Covariance matrices
     P = np.zeros(covs_shape, dtype=np.complex128)
-    
+
     # Initial state and covariance
     m[0] = gains_reshape(mp, shape)
     P[0] = Pp
-    
-    # Select CSR jacobian function 
-    aug_jac = compute_aug_np
-    
-    # Calculate R^{-1} for a diagonal
-    Rinv = np.diag(1.0/np.diag(R))
 
-    # Run Extended Kalman Filter with 
+    # Select CSR jacobian function
+    aug_jac = compute_aug_np
+
+    # Calculate R^{-1} for a diagonal
+    # Rinv = np.diag(1.0/np.diag(R))
+    Rinv = 1.0/np.diag(R)
+
+    # Run Extended Kalman Filter with
     # NUMPY matrices
     head = "==> Extended Kalman Filter (NUMPY|JIT): "
-    for k in range(1, n_time): 
-        
+    for k in range(1, n_time):
+
         # Progress Bar in object-mode
         with objmode():
             progress_bar(head, n_time, k)
-        
+
         # Predict Step
         mp = gains_vector(m[k - 1])
         Pp = (P[k - 1] + Q)
-        
+
         # Slice indices
         start = tbin_indices[k - 1]
         end = start + tbin_counts[k - 1]
-        
+
         # Calculate Slices
         row_slice = slice(start, end)
         vis_slice = vis[row_slice]
@@ -198,24 +207,24 @@ def numba_algorithm(
         weight_slice = weight[row_slice]
         ant1_slice = ant1[row_slice]
         ant2_slice = ant2[row_slice]
-        jones_slice = m[k - 1]        
+        jones_slice = m[k - 1]
 
         # Calculate Augmented Jacobian
-        J = aug_jac(model_slice, weight_slice, 
+        J = aug_jac(model_slice, weight_slice,
                         jones_slice, ant1_slice, ant2_slice)
-        
+
         # Hermitian of Jacobian
         J_herm = J.conjugate().T
 
         # Calculate Measure Vector
-        y = measure_vector(vis_slice, weight_slice, 
-                            n_ant, n_chan)        
-    
+        y = measure_vector(vis_slice, weight_slice,
+                            n_ant, n_chan)
+
         # Update Step
 
         # #! NORMAL IMPLEMENTATION (FULL)
-        # v = y - J @ mp        
-        # Pinv = np.diag(1.0/np.diag(Pp))       
+        # v = y - J @ mp
+        # Pinv = np.diag(1.0/np.diag(Pp))
         # Tinv = np.linalg.inv(Pinv + J_herm @ Rinv @ J)
         # Sinv = Rinv - Rinv @ J @ Tinv @ J_herm @ Rinv
         # K = Pp @ J_herm @ Sinv
@@ -225,14 +234,16 @@ def numba_algorithm(
         # P[k] = np.diag(np.diag(Pp - alpha * K @ J @ Pp).real)
 
         # DIAGONALISATION IMPLEMENTATION
-        v = y - J @ mp 
+        v = y - J @ mp
         p = np.diag(Pp)
         pinv = 1.0/p
-        u = np.diag(J_herm @ Rinv @ J) # Diagonal of JHJ
-        z = J_herm @ Rinv @ v          # JHr
+        # u = np.diag(J_herm @ Rinv @ J) # Diagonal of JHJ
+        # z = J_herm @ Rinv @ v
+        u = diag_dot(J_herm, Rinv[:, None] *  J)
+        z = J_herm @ Rinv * v          # JHr
         est_m = mp + alpha * z / (pinv + u)
         est_P = (1 - alpha) * p + alpha / (pinv + u)
-        
+
         # Record Posterior values
         m[k] = gains_reshape(est_m, shape)
         P[k] = np.diag(est_P.real)

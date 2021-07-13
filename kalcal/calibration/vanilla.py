@@ -242,7 +242,7 @@ def calibrate(msname, **kwargs):
         tbin_counts,
         ant1,
         ant2,
-        jones[:, :, :, :, [0, 3]],
+        smooth_gains[:, :, :, :, [0, 3], 0],
         model[:, :, :, [0, 3]],
     )
 

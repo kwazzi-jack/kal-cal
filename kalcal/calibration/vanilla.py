@@ -235,20 +235,28 @@ def calibrate(msname, **kwargs):
     with open("gains_full/true_gains.npy", "rb") as file:
         jones = np.load(file)
 
-    print(tbin_indices)
-    print(tbin_counts)
-
-    quit()
-
-    corrected_data = correct_vis(
+    from africanus.calibration.utils import corrupt_vis
+    vis_ones = np.ones((n_row, n_chan, 2), dtype=np.complex128)
+    mcol = corrupt_vis(
         tbin_indices,
         tbin_counts,
         ant1,
         ant2,
-        smooth_gains[:, :, :, :, [0, 3], 0],
-        vis[:, :, [0, 3]],
-        flag[:, :, [0, 3]]
-    )#.reshape((n_row, n_chan, 4))
+        jones[:, :, :, :, [0, 3]],
+        model[:, :, :, [0, 3]],
+    )
+
+    # corrected_data = correct_vis(
+    #     tbin_indices,
+    #     tbin_counts,
+    #     ant1,
+    #     ant2,
+    #     smooth_gains[:, :, :, :, [0, 3], 0],
+    #     vis[:, :, [0, 3]],
+    #     flag[:, :, [0, 3]]
+    # )#.reshape((n_row, n_chan, 4))
+
+    corrected_data = vis[:, :, [0, 3]] / mcol
 
     zero = np.zeros((n_row, n_chan), dtype=vis.dtype)
 

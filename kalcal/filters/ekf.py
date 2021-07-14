@@ -4,12 +4,14 @@ from kalcal.tools.utils import gains_vector, gains_reshape, measure_vector, prog
 from kalcal.tools.jacobian import compute_aug_csr, compute_aug_np
 from kalcal.tools.sparseops import csr_dot_vec
 
+### Warning!! no checks performed
 @jit(nopython=True, nogil=True, cache=True, inline='always')
 def diag_dot(A, B):
-    N = A.shape[0]
-    C = np.zeros(N)
-    for i in range(N):
-        for j in range(N):
+    n, m = A.shape
+    k, l = B.shape
+    C = np.zeros(n, dtype=A.dtype)
+    for i in range(n):
+        for j in range(m):
             C[i] += A[i, j] * B[j, i]
     return C
 
@@ -124,13 +126,13 @@ def sparse_algorithm(
     return m, P
 
 
-# @jit(nopython=True, fastmath=True)
+@jit(nopython=True, fastmath=True)
 def numba_algorithm(
     mp           : np.ndarray,
     Pp           : np.ndarray,
     model        : np.ndarray,
     vis          : np.ndarray,
-    weight       : np.ndarray,
+    weight       : np.ndarray,  # why do you need both weight and R?
     Q            : np.ndarray,
     R            : np.ndarray,
     ant1         : np.ndarray,
@@ -181,7 +183,7 @@ def numba_algorithm(
 
     # Calculate R^{-1} for a diagonal
     # Rinv = np.diag(1.0/np.diag(R))
-    Rinv = 1.0/np.diag(R)
+    # Rinv = 1.0/np.diag(R)  # LB - this is weight and is incorporated in J
 
     # Run Extended Kalman Filter with
     # NUMPY matrices
@@ -237,13 +239,12 @@ def numba_algorithm(
         v = y - J @ mp
         p = np.diag(Pp)
         pinv = 1.0/p
-        # u = np.diag(J_herm @ Rinv @ J) # Diagonal of JHJ
-        # z = J_herm @ Rinv @ v
-        print(J_herm.shape, J_herm.dtype)
-        tmp = Rinv[:, None] *  J
-        print(tmp.shape, tmp.dtype)
-        u = diag_dot(J_herm, Rinv[:, None] *  J)
-        z = J_herm @ Rinv * v          # JHr
+        # u1 = np.diag(J_herm @ Rinv @ J) # Diagonal of JHJ
+        # z1 = J_herm @ Rinv @ v
+
+        u = diag_dot(J_herm, J)
+        z = J_herm.dot(v)        # JHr
+
         est_m = mp + alpha * z / (pinv + u)
         est_P = (1 - alpha) * p + alpha / (pinv + u)
 

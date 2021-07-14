@@ -235,34 +235,43 @@ def calibrate(msname, **kwargs):
     with open("gains_full/true_gains.npy", "rb") as file:
         jones = np.load(file)
 
-    from africanus.calibration.utils import corrupt_vis
-    vis_ones = np.ones((n_row, n_chan, 2), dtype=np.complex128)
-    mcol = corrupt_vis(
-        tbin_indices,
-        tbin_counts,
-        ant1,
-        ant2,
-        smooth_gains[:, :, :, :, [0, 3], 0],
-        model[:, :, :, [0, 3]],
-    )
+    # from africanus.calibration.utils import corrupt_vis
+    # vis_ones = np.ones((n_row, n_chan, 1, 2), dtype=np.complex128)
+    # mcol = corrupt_vis(
+    #     tbin_indices,
+    #     tbin_counts,
+    #     ant1,
+    #     ant2,
+    #     # smooth_gains[:, :, :, :, [0, 3], 0],
+    #     jones[:, :, :, :, (0, 3)].copy(),
+    #     # model[:, :, :, [0, 3]],
+    #     vis_ones
+    # )
+
+    # flag_diag = flag[:, :, (0, 3)]
+    # flag_diag[np.abs(mcol) < 1e-2] = True
+
+    # print("Sum flags = ", np.sum(flag_diag))
 
     # corrected_data = correct_vis(
     #     tbin_indices,
     #     tbin_counts,
     #     ant1,
     #     ant2,
-    #     smooth_gains[:, :, :, :, [0, 3], 0],
-    #     vis[:, :, [0, 3]],
-    #     flag[:, :, [0, 3]]
+    #     # smooth_gains[:, :, :, :, [0, 3], 0],
+    #     jones[:, :, :, :, (0, 3)].copy(),
+    #     vis[:, :, [0, 3]].copy(),
+    #     flag_diag
     # )#.reshape((n_row, n_chan, 4))
 
-    corrected_data = vis[:, :, [0, 3]] / mcol
+    # # corrected_data = vis[:, :, [0, 3]] / mcol
 
-    zero = np.zeros((n_row, n_chan), dtype=vis.dtype)
+    # zero = np.zeros((n_row, n_chan), dtype=vis.dtype)
 
-    corrected_data = np.stack((corrected_data[..., 0], zero, zero, corrected_data[..., 1]), axis=-1)
+    # corrected_data = np.stack((corrected_data[..., 0], zero, zero, corrected_data[..., 1]), axis=-1)
     # To dask
-    corrected_data = da.from_array(corrected_data)
+    #corrected_data = da.from_array(corrected_data)
+    corrected_data = da.from_array(vis)
 
     # Assign and write to ms
     MS = MS.assign(**{options.out_data: (("row", "chan", "corr"),

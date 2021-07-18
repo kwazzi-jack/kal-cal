@@ -1,4 +1,4 @@
-from numba import jit
+from numba import jit, prange
 import numpy as np
 import dask.array as da
 import os
@@ -33,7 +33,7 @@ def concat_dir_axis(ms, model_columns):
     return da.from_array(model, chunks=model.shape)
 
 
-@jit(nopython=True, fastmath=True)
+@jit(nopython=True, fastmath=True, parallel=True, nogil=True)
 def gains_reshape(g, shape):
     """Reshape the state-vector (gains) back to
     jones-format."""
@@ -42,9 +42,9 @@ def gains_reshape(g, shape):
     row_shape = n_ant * n_chan * n_dir
     m = np.zeros((n_ant, n_chan, n_dir, 2), dtype=np.complex128)
 
-    for nu in range(n_chan):
-        for s in range(n_dir):
-            for a in range(n_ant):
+    for a in prange(n_ant):
+        for nu in prange(n_chan):
+            for s in prange(n_dir):      
                 row = a + n_ant * s + n_ant * n_dir * nu                
                 m[a, nu, s, 0] = g[row]
                 m[a, nu, s, 1] = g[row + row_shape]
@@ -52,7 +52,7 @@ def gains_reshape(g, shape):
     return m
 
 
-@jit(nopython=True, fastmath=True)
+@jit(nopython=True, fastmath=True, parallel=True, nogil=True)
 def gains_vector(m):
     """Create stacked gains vector using the
     state vector."""
@@ -61,9 +61,9 @@ def gains_vector(m):
     row_shape = n_ant * n_chan * n_dir
     g = np.zeros((2*row_shape), dtype=np.complex128)
 
-    for nu in range(n_chan):
-        for s in range(n_dir):
-            for a in range(n_ant):
+    for a in prange(n_ant):
+        for nu in prange(n_chan):
+            for s in prange(n_dir):
                 row = a + n_ant * s + n_ant * n_dir * nu                
                 g[row] = m[a, nu, s, 0]
                 g[row + row_shape] = m[a, nu, s, 1]
@@ -71,7 +71,7 @@ def gains_vector(m):
     return g
 
 
-@jit(nopython=True, fastmath=True)
+@jit(nopython=True, fastmath=True, parallel=True, nogil=True)
 def measure_vector(vis_data, weight, n_ant, n_chan):
     """Create stacked measurement vector using visibility
     data from the measurement."""
@@ -82,10 +82,9 @@ def measure_vector(vis_data, weight, n_ant, n_chan):
 
     n_row = vis_data.shape[0]
 
-    for row in range(n_row):
-        sqrtW = np.sqrt(weight[row])
-
+    for row in prange(n_row):
         for nu in range(n_chan):
+            sqrtW = np.sqrt(weight[row])
             data = vis_data[row, nu]
             row_upper = 2 * n_bl * nu + row % n_bl
             row_lower = row_upper + n_bl
@@ -95,7 +94,7 @@ def measure_vector(vis_data, weight, n_ant, n_chan):
     return y
 
 
-@jit(nopython=True, fastmath=True)
+@jit(nopython=True, fastmath=True, parallel=True, nogil=True)
 def true_gains_vector(m):
     """Create stacked gains vector, but using the
     true jones rather than a state-vector for debug
@@ -103,16 +102,96 @@ def true_gains_vector(m):
 
     n_ant, n_chan, n_dir = m.shape
     row_shape = n_ant * n_chan * n_dir
-    g = np.zeros((2*row_shape), dtype=np.complex128)
+    g = np.zeros((2 * row_shape), dtype=np.complex128)
 
-    for nu in range(n_chan):
-        for s in range(n_dir):
-            for a in range(n_ant):
+    for nu in prange(n_chan):
+        for s in prange(n_dir):
+            for a in prange(n_ant):
                 row = a + n_ant * s + n_ant * n_dir * nu                
                 g[row] = m[a, nu, s]
                 g[row + row_shape] = m[a, nu, s].conj()
 
     return g
+
+
+@jit(nopython=True, fastmath=True, parallel=True, nogil=True)
+def diag_mat_dot_mat(
+    A : np.ndarray, 
+    B : np.ndarray
+    ):
+
+    """Perform a dot product for diagonal elements
+    only on the two matrices A and B, and return 
+    the answer as a 1D array. Note, the theoretical dot
+    product result should also be square.
+
+    Args:
+        A (numpy.ndarray): Left-most matrix with shape (n, m).
+        B (numpy.ndarray): Right-most matrix with shape (m, n).
+
+    Returns:
+        C (numpy.ndarray): Diagonal of dot product
+        between A and B with shape (n,).
+    """
+
+    # Extract dimension sizes
+    n, m = A.shape
+
+    # Check dimensions
+    if B.shape == (m, n):
+        raise ValueError("Matrix dimensions do not form square "\
+                            + "matrix after dot-product.")    
+
+    # Array to keep result
+    C = np.zeros(n, dtype=A.dtype)
+
+    # Perform diagonal dot product
+    for i in prange(n):
+        for j in prange(m):
+            C[i] += A[i, j] * B[i, j]
+
+    # Return result
+    return C
+
+
+@jit(nopython=True, fastmath=True, parallel=True, nogil=True)
+def diag_mat_dot_vec(
+    A : np.ndarray, 
+    B : np.ndarray
+    ):
+
+    """Perform a dot product for diagonal elements
+    only on the matrix A and vector B, and return 
+    the answer as a 1D array. The column shape of
+    A must match the size of B.
+
+    Args:
+        A (numpy.ndarray): Left-most matrix with shape (n, m).
+        B (numpy.ndarray): Right-most vector with shape (m, n).
+
+    Returns:
+        C (numpy.ndarray): Diagonal of dot product
+        between A and B with shape (n,).
+    """
+
+    # Extract dimension sizes
+    n, m = A.shape
+
+    # Check dimensions
+    if B.size == m:
+        raise ValueError("Matrix column shape and vector size "\
+                            + "do not match.") 
+
+    # Array to keep result
+    C = np.zeros(n, dtype=A.dtype)
+
+    # Perform diagonal dot product
+    for i in prange(n):
+        for j in prange(m):
+            C[i] += A[i, j] * B[j]
+
+    # Return result
+    return C
 
 
 @jit(nopython=True, fastmath=True, nogil=True)

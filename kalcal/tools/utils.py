@@ -115,8 +115,8 @@ def true_gains_vector(m):
     return g
 
 
-@jit(nopython=True, fastmath=True, parallel=True, 
-        nogil=True, cache=True)
+@jit(nopython=True, fastmath=True,
+        nogil=True, cache=True, inline="always")
 def diag_mat_dot_mat(
     A : np.ndarray, 
     B : np.ndarray
@@ -150,51 +150,11 @@ def diag_mat_dot_mat(
     # Perform diagonal dot product
     for i in prange(n):
         for j in prange(m):
-            C[i] += A[i, j] * B[i, j]
+            C[i] += A[i, j] * B[j, i]
 
     # Return result
     return C
 
-
-@jit(nopython=True, fastmath=True, parallel=True, 
-        nogil=True, cache=True, inline="always")
-def diag_mat_dot_vec(
-    A : np.ndarray, 
-    B : np.ndarray
-    ):
-
-    """Perform a dot product for diagonal elements
-    only on the matrix A and vector B, and return 
-    the answer as a 1D array. The column shape of
-    A must match the size of B.
-
-    Args:
-        A (numpy.ndarray): Left-most matrix with shape (n, m).
-        B (numpy.ndarray): Right-most vector with shape (m, n).
-
-    Returns:
-        C (numpy.ndarray): Diagonal of dot product
-        between A and B with shape (n,).
-    """
-
-    # Extract dimension sizes
-    n, m = A.shape
-
-    # Check dimensions
-    if B.size != m:
-        raise ValueError("Matrix column shape and vector size "\
-                            + "do not match.") 
-
-    # Array to keep result
-    C = np.zeros(n, dtype=A.dtype)
-
-    # Perform diagonal dot product
-    for i in prange(n):
-        for j in prange(m):
-            C[i] += A[i, j] * B[j]
-
-    # Return result
-    return C
 
 @jit(nopython=True, fastmath=True, nogil=True)
 def diag_cov_reshape(P, shape):

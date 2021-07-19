@@ -104,9 +104,7 @@ def calibrate(msname, **kwargs):
         # (2 x 2) not implemented yet
         raise ValueError("Cannot identify correlation shape.")
     
-    # Gains solutions (@Landman: Have to do this to get around 
-    # correct_vis fn as it does a complex division by zero for
-    # gains correlations equal to zero, i.e. off-diagonals)
+    # Gains solutions
     filter_gains = np.zeros((n_time, n_ant, n_chan, n_dir, n_corr, 2),
                                 dtype=np.complex128)
 
@@ -227,48 +225,40 @@ def calibrate(msname, **kwargs):
 
     print("==> Calibration complete.")
 
-    # Correct Visibilties
-    # @Landman: Feeding it (n_time, n_ant, n_chan, n_dir, n_corr=4),
-    # with last index removing the augmented part. This all works fine
-    # and I've checked and works for now. The ones in the gains matrices
-    # do not affect the off-diagonals since vis is zero on off-diagonals.
-    with open("gains_full/true_gains.npy", "rb") as file:
-        jones = np.load(file)
+    # # Shapes for 2x2 correlations
+    # gains_shape = (n_time, n_ant, n_chan, n_dir, 2, 2)
+    # vis_shape = (n_row, n_chan, 2, 2)
 
-    corrected_data = correct_vis(
-        tbin_indices,
-        tbin_counts,
-        ant1,
-        ant2,
-        smooth_gains[:, :, :, :, [0, 3], 0],
-        vis[:, :, [0, 3]],
-        flag[:, :, [0, 3]]
-    )#.reshape((n_row, n_chan, 4))
+    # # Correct Visibilties
+    # corrected_data = correct_vis(
+    #     tbin_indices,
+    #     tbin_counts,
+    #     ant1,
+    #     ant2,
+    #     smooth_gains[..., 0].reshape(gains_shape),
+    #     vis.reshape(vis_shape),
+    #     flag.reshape(vis_shape)
+    # )
     
-    zero = np.zeros((n_row, n_chan), dtype=vis.dtype)
+    # # Zeros to off-diagonals and stack
+    # zero = np.zeros((n_row, n_chan), dtype=vis.dtype)
+    # corrected_data = np.stack(
+    #     (corrected_data[..., 0], zero, zero, corrected_data[..., 1]), 
+    #     axis=-1
+    # )
 
-    corrected_data = np.stack((corrected_data[..., 0], zero, zero, corrected_data[..., 1]), axis=-1)
-    # To dask
-    corrected_data = da.from_array(corrected_data)
+    # # To dask
+    # corrected_data = da.from_array(corrected_data)
 
-    # Assign and write to ms
-    MS = MS.assign(**{options.out_data: (("row", "chan", "corr"), 
-                corrected_data.astype(np.complex64))})
-    write = xds_to_table(MS, msname, [options.out_data])
+    # # Assign and write to ms
+    # MS = MS.assign(**{options.out_data: (("row", "chan", "corr"), 
+    #             corrected_data.astype(np.complex64))})
+    # write = xds_to_table(MS, msname, [options.out_data])
 
-    # Begin writing
-    print(f"==> Writing corrected smoother visibilties to `{options.out_data}`")
-    with ProgressBar():
-        write.compute()
-
-    # Remove ones from gains solutions if DIAG mode
-    # TEMP FIX: Should be reconsidered as this is janky
-    if mode == "DIAG":
-        zeros = np.zeros((n_time, n_ant, n_chan, n_dir, 2))
-        filter_gains[..., 1, :] = zeros
-        filter_gains[..., 2, :] = zeros
-        smooth_gains[..., 1, :] = zeros
-        smooth_gains[..., 2, :] = zeros
+    # # Begin writing
+    # print(f"==> Writing corrected smoother visibilties to `{options.out_data}`")
+    # with ProgressBar():
+    #     write.compute()
     
     # Output filter gains to npy file
     with open(options.out_filter, "wb") as file:
@@ -279,6 +269,7 @@ def calibrate(msname, **kwargs):
     with open(options.out_smoother, "wb") as file:
         np.save(file, smooth_gains)    
     print(f"==> Smoother gains saved to `{options.out_smoother}`")
+
 
 def calibrate_from_arrays(tbin_indices, tbin_counts, 
             ant1, ant2, vis, model, weight, **kwargs):

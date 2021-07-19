@@ -138,9 +138,9 @@ def diag_mat_dot_mat(
 
     # Extract dimension sizes
     n, m = A.shape
-
+    
     # Check dimensions
-    if B.shape == (m, n):
+    if B.shape != (m, n):
         raise ValueError("Matrix dimensions do not form square "\
                             + "matrix after dot-product.")    
 
@@ -181,7 +181,7 @@ def diag_mat_dot_vec(
     n, m = A.shape
 
     # Check dimensions
-    if B.size == m:
+    if B.size != m:
         raise ValueError("Matrix column shape and vector size "\
                             + "do not match.") 
 

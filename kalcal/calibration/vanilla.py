@@ -113,6 +113,11 @@ def calibrate(msname, **kwargs):
 
     # Run algorithm on each correlation independently
     print(f"==> Correlation Mode: {mode}")
+
+    # Create own weights
+    if options.sigma_n is not None:
+        cvar = 2 * options.sigma_n**2
+        weight = 1.0/cvar * np.ones_like(weight)
     
     for i, c in enumerate(corr):
         print(f"==> Running corr={c} ({i + 1}/{len(corr)})")
@@ -127,11 +132,7 @@ def calibrate(msname, **kwargs):
         mp = gains_vector(mp)
         Pp = np.eye(mp.size, dtype=np.complex128)
 
-        # Create noise matrices
-        if options.sigma_n is None:
-            # Temporary fix till weights are adjusted
-            options.sigma_n = 1 
-
+        # Noise Matrices
         Q = options.sigma_f**2 * np.eye(mp.size, dtype=np.complex128)
         R = 2 * options.sigma_n**2\
             * np.eye(n_ant * (n_ant - 1) * n_chan, dtype=np.complex128) 

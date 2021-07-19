@@ -1,6 +1,9 @@
 import numpy as np
 from numba import jit, objmode
-from kalcal.tools.utils import gains_vector, gains_reshape, measure_vector, progress_bar
+from kalcal.tools.utils import (
+    gains_vector, gains_reshape, 
+    measure_vector, progress_bar,
+    diag_mat_dot_mat, diag_mat_dot_vec)
 from kalcal.tools.jacobian import compute_aug_csr, compute_aug_np
 from kalcal.tools.sparseops import csr_dot_vec
 
@@ -228,8 +231,8 @@ def numba_algorithm(
         v = y - J @ mp 
         p = np.diag(Pp)
         pinv = 1.0/p
-        u = np.diag(J_herm @ Rinv @ J) # Diagonal of JHJ
-        z = J_herm @ Rinv @ v          # JHr
+        u = diag_mat_dot_mat(J_herm, J) # Diagonal of JHJ
+        z = diag_mat_dot_vec(J_herm, v) # JHr
         est_m = mp + alpha * z / (pinv + u)
         est_P = (1 - alpha) * p + alpha / (pinv + u)
         

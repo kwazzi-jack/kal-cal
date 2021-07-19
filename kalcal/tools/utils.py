@@ -148,8 +148,8 @@ def diag_mat_dot_mat(
     C = np.zeros(n, dtype=A.dtype)
 
     # Perform diagonal dot product
-    for i in prange(n):
-        for j in prange(m):
+    for i in range(n):
+        for j in range(m):
             C[i] += A[i, j] * B[j, i]
 
     # Return result

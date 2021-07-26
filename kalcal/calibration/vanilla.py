@@ -5,7 +5,7 @@ from kalcal.tools.utils import gains_vector, concat_dir_axis
 from dask import array as da 
 from dask.diagnostics import ProgressBar
 from daskms import xds_from_ms, xds_to_table
-from africanus.calibration.utils import correct_vis
+from africanus.calibration.utils import corrupt_vis
 import numpy as np
 from time import time
 
@@ -52,7 +52,7 @@ def calibrate(msname, **kwargs):
 
     # Load data visibilities (dask ignored for now)
     vis = MS.get(options.vis_column).data.compute().astype(np.complex128)
-
+    
     # Load weights (dask ignored for now)
     weight = MS.get(options.weight_column).data.compute().astype(np.complex128)
 
@@ -118,6 +118,7 @@ def calibrate(msname, **kwargs):
     if options.sigma_n is not None:
         cvar = 2 * options.sigma_n**2
         weight = 1.0/cvar * np.ones_like(weight)
+    
     
     for i, c in enumerate(corr):
         print(f"==> Running corr={c} ({i + 1}/{len(corr)})")
@@ -225,41 +226,30 @@ def calibrate(msname, **kwargs):
             + f"total taken: {np.round(total_time, 3)} s")
 
     print("==> Calibration complete.")
-
-    # # Shapes for 2x2 correlations
-    # gains_shape = (n_time, n_ant, n_chan, n_dir, 2, 2)
-    # vis_shape = (n_row, n_chan, 2, 2)
-
-    # # Correct Visibilties
-    # corrected_data = correct_vis(
-    #     tbin_indices,
-    #     tbin_counts,
-    #     ant1,
-    #     ant2,
-    #     smooth_gains[..., 0].reshape(gains_shape),
-    #     vis.reshape(vis_shape),
-    #     flag.reshape(vis_shape)
-    # )
     
-    # # Zeros to off-diagonals and stack
-    # zero = np.zeros((n_row, n_chan), dtype=vis.dtype)
-    # corrected_data = np.stack(
-    #     (corrected_data[..., 0], zero, zero, corrected_data[..., 1]), 
-    #     axis=-1
-    # )
+    # Correct Visibilties
+    corrected_data = corrupt_vis(
+        tbin_indices,
+        tbin_counts,
+        ant1,
+        ant2,
+        smooth_gains[..., 0],
+        model
+    )
+    
+    # To dask
+    corrected_data = da.from_array(corrected_data,
+                        chunks=MS.get(options.vis_column).chunks)
+    
+    # Assign and write to ms
+    MS = MS.assign(**{"CORRECTED_DATA": (("row", "chan", "corr"), 
+                corrected_data)})
+    write = xds_to_table(MS, msname, ["CORRECTED_DATA"])
 
-    # # To dask
-    # corrected_data = da.from_array(corrected_data)
-
-    # # Assign and write to ms
-    # MS = MS.assign(**{options.out_data: (("row", "chan", "corr"), 
-    #             corrected_data.astype(np.complex64))})
-    # write = xds_to_table(MS, msname, [options.out_data])
-
-    # # Begin writing
-    # print(f"==> Writing corrected smoother visibilties to `{options.out_data}`")
-    # with ProgressBar():
-    #     write.compute()
+    # Begin writing
+    print(f"==> Writing corrected smoother visibilties to `{options.out_data}`")
+    with ProgressBar():
+        write.compute()
     
     # Output filter gains to npy file
     with open(options.out_filter, "wb") as file:

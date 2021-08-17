@@ -1,9 +1,10 @@
+from dask.optimization import inline
 import numpy as np
 from scipy import sparse
-from numba import njit, prange
+from numba import njit
 
 
-@njit(parallel=True, fastmath=True, nogil=True)
+@njit(parallel=False, fastmath=True, nogil=True)
 def _construct_coo_lists(
     model : np.ndarray, 
     weight : np.ndarray, 
@@ -23,9 +24,9 @@ def _construct_coo_lists(
     data = np.zeros(n_terms, dtype=np.complex128)
 
     # Populate lists
-    for s in prange(n_dir):
-        for nu in prange(n_chan):
-            for row in prange(n_row):
+    for s in range(n_dir):
+        for nu in range(n_chan):
+            for row in range(n_row):
 
                 # Antenna pairings
                 p = antenna1[row]
@@ -50,7 +51,38 @@ def _construct_coo_lists(
                             * jones[q, nu, s].conjugate()
                 data[n + 1] = sqrtW * model[row, nu, s].conjugate()\
                             * jones[p, nu, s].conjugate()                            
-      
+    
+    # Populate lists
+    for row in range(n_row):
+        # Antenna pairings
+        p = antenna1[row]
+        q = antenna2[row]
+
+        # Square-root of weight
+        sqrtW = np.sqrt(weight[row])
+
+        # Data for baseline
+        Xpq = model[row]
+        gp_star = jones[p].conjugate()
+        gq_star = jones[q].conjugate()
+
+        for nu in range(n_chan):
+            for s in range(n_dir):   
+                # Term index
+                n = 2 * (s + n_dir * nu + n_dir * n_chan * row)
+
+                # Row Indices
+                rows[n] = 2 * n_row * nu + row
+                rows[n + 1] = rows[n] + n_row
+
+                # Column Indices
+                cols[n] = n_ant * n_dir * nu + n_ant * s + p
+                cols[n + 1] = n_ant * n_dir * nu + n_ant * s + q
+                
+                # Data-values
+                data[n] = sqrtW * Xpq[nu, s] * gq_star[nu, s]
+                data[n + 1] = sqrtW * Xpq[nu, s].conjugate() * gp_star[nu, s] 
+                
     return data, rows, cols
 
 
@@ -102,7 +134,7 @@ def compute_aug_csr(
             antenna1, antenna2).tocsr().astype(np.complex128)
 
 
-@njit(parallel=True, fastmath=True, nogil=True)
+@njit(fastmath=True, nogil=True, inline="always")
 def _build_np_matrix(
     model : np.ndarray, 
     weight : np.ndarray, 
@@ -121,17 +153,21 @@ def _build_np_matrix(
     jacobian = np.zeros(jac_shape, dtype=np.complex128)
 
     # Populate lists
-    for s in prange(n_dir):
-        for nu in prange(n_chan):
-            for row in prange(n_row):
+    for row in range(n_row):
+        # Antenna pairings
+        p = antenna1[row]
+        q = antenna2[row]
 
-                # Antenna pairings
-                p = antenna1[row]
-                q = antenna2[row]
+        # Square-root of weight
+        sqrtW = np.sqrt(weight[row])
 
-                # Square-root of weight
-                sqrtW = np.sqrt(weight[row])
+        # Data for baseline
+        Xpq = model[row]
+        gp_star = jones[p].conjugate()
+        gq_star = jones[q].conjugate()
 
+        for nu in range(n_chan):
+            for s in range(n_dir):   
                 # Row Indices
                 r1 = 2 * n_row * nu + row
                 r2 = r1 + n_row
@@ -141,15 +177,13 @@ def _build_np_matrix(
                 c2 = n_ant * n_dir * nu + n_ant * s + q
                 
                 # Data-values
-                jacobian[r1, c1] = sqrtW * model[row, nu, s]\
-                                    * jones[q, nu, s].conjugate()
-                jacobian[r2, c2] = sqrtW * model[row, nu, s].conjugate()\
-                                    * jones[p, nu, s].conjugate()
+                jacobian[r1, c1] = sqrtW * Xpq[nu, s] * gq_star[nu, s]
+                jacobian[r2, c2] = sqrtW * Xpq[nu, s].conjugate() * gp_star[nu, s]
 
     return jacobian
 
 
-@njit(fastmath=True, nogil=True)
+@njit(fastmath=True, nogil=True, inline="always")
 def compute_aug_np(
     model : np.ndarray, 
     weight : np.ndarray, 

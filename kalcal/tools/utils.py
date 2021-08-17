@@ -84,13 +84,13 @@ def measure_vector(vis_data, weight, n_ant, n_chan):
     n_row = vis_data.shape[0]
 
     for row in range(n_row):
-        for nu in range(n_chan):
-            sqrtW = np.sqrt(weight[row])
-            data = vis_data[row, nu]
+        sqrtW = np.sqrt(weight[row])
+        data = vis_data[row]
+        for nu in range(n_chan):            
             row_upper = 2 * n_bl * nu + row % n_bl
             row_lower = row_upper + n_bl
-            y[row_upper] = sqrtW * data
-            y[row_lower] = sqrtW * data.conjugate()
+            y[row_upper] = sqrtW * data[nu]
+            y[row_lower] = sqrtW * data[nu].conjugate()
 
     return y
 
@@ -105,8 +105,8 @@ def true_gains_vector(m):
     row_shape = n_ant * n_chan * n_dir
     g = np.zeros((2 * row_shape), dtype=np.complex128)
 
-    for nu in range(n_chan):
-        for s in range(n_dir):
+    for s in range(n_dir):
+        for nu in range(n_chan):        
             for a in range(n_ant):
                 row = a + n_ant * s + n_ant * n_dir * nu                
                 g[row] = m[a, nu, s]

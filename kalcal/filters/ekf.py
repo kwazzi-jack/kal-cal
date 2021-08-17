@@ -176,7 +176,7 @@ def numba_algorithm(
     
     # Calculate R^{-1} for a diagonal
     Rinv = np.diag(1.0/np.diag(R))
-
+    I = np.eye(Rinv.shape[0])
     # Run Extended Kalman Filter with 
     # NUMPY matrices
     head = "==> Extended Kalman Filter (NUMPY|JIT): "
@@ -213,19 +213,33 @@ def numba_algorithm(
         # Calculate Measure Vector
         y = measure_vector(vis_slice, weight_slice, 
                             n_ant, n_chan)        
-    
+
+        ym = measure_vector(model_slice[:, :, 0], weight_slice, 
+                            n_ant, n_chan)
         # Update Step
 
-        # #! NORMAL IMPLEMENTATION (FULL)
-        # v = y - J @ mp        
+        #! NORMAL IMPLEMENTATION (FULL)
+        # v = y - J @ mp
         # Pinv = np.diag(1.0/np.diag(Pp))       
         # Tinv = np.linalg.inv(Pinv + J_herm @ Rinv @ J)
         # Sinv = Rinv - Rinv @ J @ Tinv @ J_herm @ Rinv
         # K = Pp @ J_herm @ Sinv
 
-        # # Record Posterior values
+        # u = np.diag(J_herm @ J)
+        # z = J_herm @ v
+        # p = np.diag(Pp)
+        # pinv = 1.0/p        
+        # mt = mp + alpha * p * (1.0 - np.diag(J_herm @ J)/(pinv + np.diag(J_herm @ J))) * (J_herm @ v)
+        # pt = p - alpha * p * (1.0 - u/(pinv + np.diag(J_herm @ J))) * np.diag(J_herm @ J) * p        
+
+        # Record Posterior values
+        # m[k] = gains_reshape(mt, shape)
+        # P[k] = np.diag(pt.real) 
+
+        # mt = mp + alpha * K @ v
         # m[k] = gains_reshape(mp + alpha * K @ v, shape)
         # P[k] = np.diag(np.diag(Pp - alpha * K @ J @ Pp).real)
+
 
         # DIAGONALISATION IMPLEMENTATION
         v = y - J @ mp 
@@ -234,8 +248,9 @@ def numba_algorithm(
         u = diag_mat_dot_mat(J_herm, J) # Diagonal of JHJ
         
         z = J_herm @ v # JHr
-        est_m = mp + alpha * z / (pinv + u)
-        est_P = (1 - alpha) * p + alpha / (pinv + u)
+        updt = alpha / (pinv + u)
+        est_m = mp + z * updt
+        est_P = (1 - alpha) * p + updt
         
         # Record Posterior values
         m[k] = gains_reshape(est_m, shape)

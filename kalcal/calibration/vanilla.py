@@ -1,11 +1,11 @@
 from omegaconf import OmegaConf as ocf
-from kalcal.filters import ekf
+from kalcal.filters import ekf, iekf
 from kalcal.smoothers import eks
 from kalcal.tools.utils import gains_vector, concat_dir_axis
 from dask import array as da 
 from dask.diagnostics import ProgressBar
 from daskms import xds_from_ms, xds_to_table
-from africanus.calibration.utils import corrupt_vis
+from africanus.calibration.utils import corrupt_vis, correct_vis
 import numpy as np
 from time import time
 
@@ -134,8 +134,8 @@ def calibrate(msname, **kwargs):
         Pp = np.eye(mp.size, dtype=np.complex128)
 
         # Noise Matrices
-        Q = options.sigma_f**2 * np.eye(mp.size, dtype=np.complex128)
-        R = 2 * options.sigma_n**2\
+        Q = 2 * options.sigma_f * np.eye(mp.size, dtype=np.complex128)
+        R = 2 * options.sigma_n\
             * np.eye(n_ant * (n_ant - 1) * n_chan, dtype=np.complex128) 
 
         # Variable to keep track of algorithm direction
@@ -226,30 +226,36 @@ def calibrate(msname, **kwargs):
             + f"total taken: {np.round(total_time, 3)} s")
 
     print("==> Calibration complete.")
-    
-    # Correct Visibilties
-    corrected_data = corrupt_vis(
-        tbin_indices,
-        tbin_counts,
-        ant1,
-        ant2,
-        smooth_gains[..., 0],
-        model
-    )
-    
-    # To dask
-    corrected_data = da.from_array(corrected_data,
-                        chunks=MS.get(options.vis_column).chunks)
-    
-    # Assign and write to ms
-    MS = MS.assign(**{"CORRECTED_DATA": (("row", "chan", "corr"), 
-                corrected_data)})
-    write = xds_to_table(MS, msname, ["CORRECTED_DATA"])
 
-    # Begin writing
-    print(f"==> Writing corrected smoother visibilties to `{options.out_data}`")
-    with ProgressBar():
-        write.compute()
+    if options.out_data is not None and options.out_data != "":
+        # Set off-diagonals to ones for gains
+        jones = np.ones_like(smooth_gains[..., 0])
+        jones[..., 0] = smooth_gains[..., 0, 0]
+        jones[..., 3] = smooth_gains[..., 0, 0]
+        
+        # Correct Visibilties
+        corrected_data = correct_vis(
+            tbin_indices, 
+            tbin_counts, 
+            ant1, 
+            ant2, 
+            jones, 
+            vis, 
+            flag)
+
+        # To dask
+        corrected_data = da.from_array(corrected_data,
+                            chunks=MS.get(options.vis_column).chunks)
+        
+        # Assign and write to ms
+        MS = MS.assign(**{options.out_data: (("row", "chan", "corr"), 
+                    corrected_data.astype(np.complex64))})
+        write = xds_to_table(MS, msname, [options.out_data])
+
+        # Begin writing
+        print(f"==> Writing corrected smoother visibilties to `{options.out_data}`")
+        with ProgressBar():
+            write.compute()
     
     # Output filter gains to npy file
     with open(options.out_filter, "wb") as file:

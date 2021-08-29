@@ -204,8 +204,9 @@ def new(ms, sky_model, **kwargs):
                                 lt, lnu, ls)
 
     # Output to jones to .npy file
-    gains_file = f"{options.type}_{options.out_file}"    
-    if options.out_file is not None:
-        with open(gains_file, 'wb') as file:            
-                np.save(file, jones)
+    gains_file = (options.type + ".npy") if options.out_file is None\
+                    else options.out_file    
+    
+    with open(gains_file, 'wb') as file:            
+            np.save(file, jones)
     print(f"==> Completed and gains saved to: {gains_file}")

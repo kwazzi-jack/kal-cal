@@ -56,7 +56,7 @@ def new(ms, sky_model, gains, **kwargs):
     # Load gains to corrupt with
     with open(gains, "rb") as file:
         jones = np.load(file)
-
+    
     # Load dimensions
     n_time, n_ant, n_chan, n_dir, n_corr = jones.shape
     n_row = n_time * (n_ant * (n_ant - 1)//2)
@@ -242,7 +242,7 @@ def new(ms, sky_model, gains, **kwargs):
                 model_vis[:, :, d].astype(np.complex64))})
 
         out_names += [source_names[d]]
-    
+
     # Assign noise free visibilities to 'CLEAN_DATA'
     MS = MS.assign(**{'CLEAN_' + options.dname: (("row", "chan", "corr"), 
             data.astype(np.complex64))})
@@ -298,5 +298,5 @@ def new(ms, sky_model, gains, **kwargs):
 
     with ProgressBar():
         write.compute()
-
+    
     print(f"==> Completed.")

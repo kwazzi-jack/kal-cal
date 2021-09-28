@@ -1,6 +1,6 @@
 import numpy as np
 from numba import jit, objmode
-from kalcal.tools.utils import gains_vector, gains_reshape, measure_vector, progress_bar
+from kalcal.tools.utils import diag_mat_dot_mat, gains_vector, gains_reshape, measure_vector, progress_bar
 from kalcal.tools.jacobian import compute_aug_csr, compute_aug_np
 from kalcal.tools.sparseops import csr_dot_vec
 
@@ -168,9 +168,9 @@ def numba_algorithm(
     ant2         : np.ndarray, 
     tbin_indices : np.ndarray, 
     tbin_counts  : np.ndarray,
+    alpha        : np.float64,
     tol          : np.float64=1e-5,
-    maxiter      : np.int32=20,
-    alpha        : np.float64=0.5):  
+    maxiter      : np.int32=5):  
 
     """Numpy-matrix implementation of Iterated-EKF algorithm. It is
     numba-compiled."""
@@ -243,13 +243,6 @@ def numba_algorithm(
         # Current Iteration jones
         jones_slice = gains_reshape(mp, shape)       
 
-        # Calculate Augmented Jacobian
-        J = aug_jac(model_slice, weight_slice, 
-                        jones_slice, ant1_slice, ant2_slice)
-
-        # Hermitian of Jacobian
-        J_herm = J.conjugate().T
-
         # Calculate Measure Vector
         y = measure_vector(vis_slice, weight_slice, 
                             n_ant, n_chan)
@@ -262,6 +255,8 @@ def numba_algorithm(
 
         # Inverse of Prior Covariance
         Pinv = np.diag(1.0/np.diag(Pp)) 
+        p = np.diag(Pp)
+        pinv = 1.0/p
 
         # Iteration counter
         i = 0
@@ -278,12 +273,11 @@ def numba_algorithm(
             
             # Update Step
             v = y - J @ mi  
-            Tinv = np.linalg.inv(Pinv + J_herm @ Rinv @ J)
-            Sinv = Rinv - Rinv @ J @ Tinv @ J_herm @ Rinv
-            K = Pp @ J_herm @ Sinv
-
+            u = diag_mat_dot_mat(J_herm, J)
+            z = J_herm @ v
+    
             # Next state update
-            mt = mn + alpha*(mi - mn + K @ v)            
+            mt = mn + alpha * (mi - mn) + alpha * z / (pinv + u)
 
             # Stop if tolerance reached
             if np.mean(np.abs(mt - mn)) <= tol:
@@ -296,9 +290,10 @@ def numba_algorithm(
             # Next Iteration jones           
             jones_slice = gains_reshape(mn, shape)
 
-        # Record Posterior values
+        # Record Posterior valuesa
         m[k] = gains_reshape(mt, shape)
-        P[k] = np.diag(np.diag(Pp - K @ J @ Pp).real)
+        est_P = (1 - alpha) * p + alpha / (pinv + u)
+        P[k] = np.diag(est_P.real)
 
     # Newline
     print()

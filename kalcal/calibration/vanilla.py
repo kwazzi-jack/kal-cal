@@ -233,6 +233,9 @@ def calibrate(msname, **kwargs):
         jones[..., 0] = smooth_gains[..., 0, 0]
         jones[..., 3] = smooth_gains[..., 0, 0]
         
+        # The flag keeps setting to all true
+        flag = np.zeros_like(flag)
+
         # Correct Visibilties
         corrected_data = correct_vis(
             tbin_indices, 
@@ -242,7 +245,7 @@ def calibrate(msname, **kwargs):
             jones, 
             vis, 
             flag)
-
+        
         # To dask
         corrected_data = da.from_array(corrected_data,
                             chunks=MS.get(options.vis_column).chunks)

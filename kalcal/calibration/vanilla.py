@@ -23,6 +23,16 @@ def calibrate(msname, **kwargs):
     # Set to struct
     ocf.set_struct(options, True)
 
+    # Set thread count to cpu count
+    if options.ncpu:
+        print(options.ncpu)
+        from multiprocessing.pool import ThreadPool
+        import dask
+        dask.config.set(pool=ThreadPool(options.ncpu))
+    else:
+        import multiprocessing
+        dask.config.set(pool=ThreadPool(multiprocessing.cpu_count()))
+
     # Choose filter algorithm
     kalman_filter = {
         "numba" : ekf.numba_algorithm,

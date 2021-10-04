@@ -56,6 +56,9 @@ from kalcal.calibration.vanilla import calibrate as calibrate_cmd
                 default="CORRECTED_DATA", show_default=True,
                 help="Name of ms column to put corrected data in.")
 
+@click.option("--ncpu", type=int,
+                help="Number of CPUs allowed for dask to use. Default is all.")
+
 @click.option("-y", "--yaml", type=str,
                 help="Path to yaml config file.")
 

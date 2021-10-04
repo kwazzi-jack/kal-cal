@@ -56,6 +56,10 @@ from kalcal.calibration.vanilla import calibrate as calibrate_cmd
                 default="CORRECTED_DATA", show_default=True,
                 help="Name of ms column to put corrected data in.")
 
+@click.option("--out-weight", type=str, 
+                default="WEIGHT_SPECTRUM", show_default=True,
+                help="Name of ms column to put scaled imaging weights in.")
+
 @click.option("--ncpu", type=int,
                 help="Number of CPUs allowed for dask to use. Default is all.")
 

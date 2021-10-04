@@ -25,7 +25,6 @@ def calibrate(msname, **kwargs):
 
     # Set thread count to cpu count
     if options.ncpu:
-        print(options.ncpu)
         from multiprocessing.pool import ThreadPool
         import dask
         dask.config.set(pool=ThreadPool(options.ncpu))
@@ -128,7 +127,6 @@ def calibrate(msname, **kwargs):
     if options.sigma_n is not None:
         cvar = 2 * options.sigma_n**2
         weight = 1.0/cvar * np.ones_like(weight)
-    
     
     for i, c in enumerate(corr):
         print(f"==> Running corr={c} ({i + 1}/{len(corr)})")
@@ -258,23 +256,30 @@ def calibrate(msname, **kwargs):
                             chunks=MS.get(options.vis_column).chunks)
         
         # Assign and write to ms
+        print(f"==> Writing corrected smoother visibilties to `{options.out_data}`")
         MS = MS.assign(**{options.out_data: (("row", "chan", "corr"), 
                     corrected_data.astype(np.complex64))})
 
-        if options.out_weight is not None and options.out_weight != "":
-            weight_spectrum = corrupt_vis(
-                tbin_indices, 
-                tbin_counts, 
-                ant1,
-                ant2,
-                jones,
-                vis,
-                flag)
+        columns = [options.out_data]
 
-        write = xds_to_table(MS, msname, [options.out_data])
+        if options.out_weight is not None and options.out_weight != "":
+            abs_sqr_gains = np.power(np.abs(smooth_gains[..., 0]), 2)
+            cvar = 2 * options.sigma_n**2
+            weight = 1.0/cvar * np.ones((n_row, n_chan, n_dir, n_corr))
+            weight_spectrum = corrupt_vis(tbin_indices, tbin_counts, ant1, ant2, abs_sqr_gains, weight).real
+
+            weight_spectrum = da.from_array(weight_spectrum,
+                            chunks=MS.get(options.vis_column).chunks)
+
+            print(f"==> Writing new imaging weights to `{options.out_weight}`")
+            MS = MS.assign(**{options.out_weight: (("row", "chan", "corr"), 
+                    weight_spectrum.astype(np.float32))})
+
+            columns.append(options.out_weight)
+
+        write = xds_to_table(MS, msname, columns)
         
         # Begin writing
-        print(f"==> Writing corrected smoother visibilties to `{options.out_data}`")
         with ProgressBar():
             write.compute()
     

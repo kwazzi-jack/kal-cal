@@ -242,9 +242,6 @@ def calibrate(msname, **kwargs):
         jones = np.ones_like(smooth_gains[..., 0])
         jones[..., 0] = smooth_gains[..., 0, 0]
         jones[..., 3] = smooth_gains[..., 0, 0]
-        
-        # The flag keeps setting to all true
-        flag = np.zeros_like(flag)
 
         # Correct Visibilties
         corrected_data = correct_vis(
@@ -263,13 +260,26 @@ def calibrate(msname, **kwargs):
         # Assign and write to ms
         MS = MS.assign(**{options.out_data: (("row", "chan", "corr"), 
                     corrected_data.astype(np.complex64))})
-        write = xds_to_table(MS, msname, [options.out_data])
 
+        if options.out_weight is not None and options.out_weight != "":
+            weight_spectrum = corrupt_vis(
+                tbin_indices, 
+                tbin_counts, 
+                ant1,
+                ant2,
+                jones,
+                vis,
+                flag)
+
+        write = xds_to_table(MS, msname, [options.out_data])
+        
         # Begin writing
         print(f"==> Writing corrected smoother visibilties to `{options.out_data}`")
         with ProgressBar():
             write.compute()
     
+    
+
     # Output filter gains to npy file
     with open(options.out_filter, "wb") as file:
         np.save(file, filter_gains)

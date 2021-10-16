@@ -1,0 +1,44 @@
+# # Config yaml for 'kalcal`
+
+1: # Create an empty measurement set called KAT7.MS
+  command: "kal-create ms"
+  arguments:
+    msname: "KAT7.MS"
+  options:
+    tel: 'kat-7'
+    pos_type: 'ascii'
+    dec: ' -30d14m50s' 
+    ra: '11h49m15s'    
+    synthesis: 2
+    dtime: 10
+    freq0: "1GHz"
+    nchan: "1"
+    dfreq: "1MHz"
+    stokes: "XX XY YX YY"
+
+2: # Create magnitude-only gains and save it to gains.npy
+  command: "kal-create gains"
+  arguments:
+    ms: "KAT7.MS"
+    sky_model: "skymodel.txt"
+  options:
+    type: "normal"
+    std: 0.2
+    diffs: [0.02, 0.05, 0.5]
+    die: True
+    out_file: "true_gains.npy"   
+
+3: # Simulate visibilities using KAT7.MS and gains.npy
+  command: "kal-create data"
+  arguments:
+    ms: "KAT7.MS"
+    sky_model: "skymodel.txt"
+    gains: "true_gains.npy"
+  options:
+    std: 1.0
+    phase_convention: "CASA"
+    die: True
+    utime: 30
+    ncpu: 8
+    mname: "MODEL_DATA"
+    dname: "DATA"

@@ -284,11 +284,17 @@ def calibrate(msname, **kwargs):
             write.compute()
     
     # Output filter gains to npy file
-    with open(options.out_filter, "wb") as file:
-        np.save(file, filter_gains)
-    print(f"==> Filter gains saved to `{options.out_filter}`")
+    if options.out_filter is not None and options.out_filter != "":
+        with open(options.out_filter, "wb") as file:
+            np.save(file, filter_gains)
+        print(f"==> Filter gains saved to `{options.out_filter}`")
+    else:
+        print(f"==> Filter gains not saved")
 
     # Output smoother gains to npy file
-    with open(options.out_smoother, "wb") as file:
-        np.save(file, smooth_gains)    
-    print(f"==> Smoother gains saved to `{options.out_smoother}`")
+    if options.out_smoother is not None and options.out_smoother != "":
+        with open(options.out_smoother, "wb") as file:
+            np.save(file, smooth_gains)
+        print(f"==> Smoother gains saved to `{options.out_smoother}`")
+    else:
+        print(f"==> Smoother gains not saved")

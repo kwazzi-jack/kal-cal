@@ -104,9 +104,9 @@ def gains(**kwargs):
 
         # Generate label using p and q
         if options.complex_axis.lower() == 'real':
-            y_label = rf"$\Re\{{g_{{{i}}} \times g_{{{options.ref_ant}}}^*\}}$"
+            y_label = rf"$\Re\{{g_{{{i}}} g_{{{options.ref_ant}}}^*\}}$"
         elif options.complex_axis.lower() == 'imag':
-            y_label = rf"$\Im\{{g_{{{i}}} \times g_{{{options.ref_ant}}}^*\}}$"
+            y_label = rf"$\Im\{{g_{{{i}}} g_{{{options.ref_ant}}}^*\}}$"
         else:
             raise ValueError("Incorrect part selected - only real or imag")
 

@@ -27,7 +27,9 @@ def calibrate(msname, **kwargs):
     if options.ncpu:
         from multiprocessing.pool import ThreadPool
         import dask
+        import numba
         dask.config.set(pool=ThreadPool(options.ncpu))
+        numba.set_num_threads(n=options.ncpu)
     else:
         import multiprocessing
         dask.config.set(pool=ThreadPool(multiprocessing.cpu_count()))

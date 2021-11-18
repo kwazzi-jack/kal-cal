@@ -61,7 +61,7 @@ from kalcal.calibration.vanilla import calibrate as calibrate_cmd
                 help="Name of ms column to put scaled imaging weights in.")
 
 @click.option("--ncpu", type=int,
-                help="Number of CPUs allowed for dask to use. Default is all.")
+                help="Number of CPUs allowed for numba and dask to use. Default is all.")
 
 @click.option("-y", "--yaml", type=str,
                 help="Path to yaml config file.")

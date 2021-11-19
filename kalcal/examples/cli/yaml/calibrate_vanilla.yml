@@ -1,0 +1,55 @@
+# Config yaml for 'kal-calibrate vanilla'
+
+# Number of filter runs to apply to your data
+# before moving to smoothing.
+filter: 1
+
+# Number of smoother runs to apply before 
+# completing.
+smoother: 1
+
+# Choice of filter algorithm to use based on
+# needs. NUMBA is for speed, but high memory
+# usage and SPARSE is for memory, but slow
+# computation speed.
+algorithm: "NUMBA"
+
+# Standard deviation for the process noise matrix
+sigma_f: 0.0075
+
+# Standard deviation for the measurement noise matrix
+sigma_n: 1.0
+
+# Step control for the Kalman Gain Update Step in 
+# the filter, i.e. the mysterious factor of a 1/2.
+step_control: 0.5
+
+# The model column to get X_pq in the ms. 
+# If there are multiple sources, list them in 
+# a comma separated list with
+# string quotations and they will be joined along
+# the direction axis.
+model_column: "MODEL_DATA"
+
+# The visibilities column to get V_pq in the ms
+vis_column: "DATA"
+
+# The weight column in the ms
+weight_column: "WEIGHT"
+
+# Output .npy file for the filter and smoother gains created
+# by this command. Note, if multiple filter and smoother runs
+# are done, it will save the last run of each.
+out_filter: "filter.npy"
+out_smoother: "smoother.npy" 
+
+# With the calibrated gains, correct the visibilities and write
+# them back to the measurement set. If you wish to calculate 
+# imaging weights as well, set the name for out_weight as well.
+# In this case, we are not imaging so they are left blank.
+out_data: ""
+out_weight: ""
+
+# Controls the number of cores that dask and numba can use during
+# the algorithm. Note the default is ALL.
+ncpu: 8

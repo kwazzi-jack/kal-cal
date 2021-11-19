@@ -1,0 +1,31 @@
+# Config yaml for 'kal-create ms'
+
+# Name of telescope-array you wish to model the ms with.
+# The name is important, as it points to the equivalent
+# antenna table for antenna positions.
+tel: 'meerkat'
+
+# Antenna table encoding type. This can be left as is
+# in most cases.
+pos_type: 'ascii'
+
+# Angle of declination and right ascension. The space
+# is important infront of the value IF negative.
+dec: '-30d14m50s' 
+ra: '11h49m15s'    
+
+# Synthesis time (in hours and same as scan-length) 
+# and integration time (in seconds). To work out 
+# time-steps you would like, use the following formula:
+#     n_time = 3600 * synthesis // dtime
+synthesis: 2
+dtime: 10
+
+# Initial frequency, number of channels and space
+# between channels
+freq0: "1GHz"
+nchan: "1"
+dfreq: "10MHz"
+
+# Polarization for the antenna feeds
+stokes: "XX XY YX YY"

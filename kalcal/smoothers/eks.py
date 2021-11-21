@@ -1,6 +1,6 @@
 import numpy as np
 from numba import njit, objmode
-from kalcal.tools.utils import gains_vector, gains_reshape, progress_bar
+from kalcal.tools.utils import gains_vector, gains_reshape
 
 
 @njit(fastmath=True, nogil=True)
@@ -28,12 +28,7 @@ def numba_algorithm(
 
     # Run Extended Kalman Smoother with
     # Numpy matrices
-    head = "==> Extended Kalman Smoother (NUMPY|JIT): "
     for k in range(-2, -(n_time + 1), -1):   
-         
-        # Progress Bar in object-mode
-        with objmode():
-            progress_bar(head, n_time, -k - 1)
 
         # Predict Step
         mp = gains_vector(m[k])
@@ -51,9 +46,6 @@ def numba_algorithm(
         Ps[k] = np.diag(np.diag(Pt + G @ E @ G.T).real)
 
         G_values[k] = G.real
-
-    # Newline
-    print()
 
     # Return Posterior smooth states and covariances
     return ms, Ps, G_values

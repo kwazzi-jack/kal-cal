@@ -1,9 +1,8 @@
 import numpy as np
-from numba import jit, objmode
+from numba import jit
 from kalcal.tools.utils import (
     gains_vector, gains_reshape, 
-    measure_vector, progress_bar,
-    diag_mat_dot_mat)
+    measure_vector, diag_mat_dot_mat)
 from kalcal.tools.jacobian import compute_aug_csr, compute_aug_np
 from kalcal.tools.sparseops import csr_dot_vec
 
@@ -67,11 +66,7 @@ def sparse_algorithm(
     
     # Run Extended Kalman Filter with 
     # Sparse matrices
-    head = "==> Extended Kalman Filter (SPARSE): "
     for k in range(1, n_time): 
-
-        # Progress Bar
-        progress_bar(head, n_time, k)
 
         # Predict Step
         mp = gains_vector(m[k - 1])
@@ -111,9 +106,6 @@ def sparse_algorithm(
         # Record Posterior values
         m[k] = gains_reshape(mp + alpha * K @ v, shape)
         P[k] = np.diag(np.diag(Pp - alpha * K @ J @ Pp).real)
-
-    # Newline
-    print()
 
     # Return Posterior states and covariances
     return m, P
@@ -174,17 +166,9 @@ def numba_algorithm(
     # Select CSR jacobian function 
     aug_jac = compute_aug_np
     
-    # Calculate R^{-1} for a diagonal
-    Rinv = np.diag(1.0/np.diag(R))
-    I = np.eye(Rinv.shape[0])
     # Run Extended Kalman Filter with 
     # NUMPY matrices
-    head = "==> Extended Kalman Filter (NUMPY|JIT): "
     for k in range(1, n_time): 
-        
-        # Progress Bar in object-mode
-        with objmode():
-            progress_bar(head, n_time, k)
         
         # Predict Step
         mp = gains_vector(m[k - 1])
@@ -212,10 +196,8 @@ def numba_algorithm(
 
         # Calculate Measure Vector
         y = measure_vector(vis_slice, weight_slice, 
-                            n_ant, n_chan)        
+                            n_ant, n_chan)     
 
-        ym = measure_vector(model_slice[:, :, 0], weight_slice, 
-                            n_ant, n_chan)
         # Update Step
 
         #! NORMAL IMPLEMENTATION (FULL)
@@ -255,9 +237,6 @@ def numba_algorithm(
         # Record Posterior values
         m[k] = gains_reshape(est_m, shape)
         P[k] = np.diag(est_P.real)
-
-    # Newline
-    print()
 
     # Return Posterior states and covariances
     return m, P

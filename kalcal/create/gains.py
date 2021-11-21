@@ -4,7 +4,6 @@ from daskms import xds_from_ms, xds_from_table
 from africanus.gps.kernels import exponential_squared as expsq
 from africanus.linalg import kronecker_tools as kt
 from africanus.coordinates import radec_to_lm
-from kalcal.tools.utils import progress_bar
 from kalcal.datasets.sky_models import (
     MODEL_1, MODEL_4, MODEL_50
 )
@@ -36,25 +35,16 @@ def phase_gains(lm, freq, n_time, n_ant, n_chan, n_dir, n_corr, sigma_f):
     freq_norm = freq/freq.min()
 
     # Simulate phases
-    iterations = n_time * n_ant * 2
-    head = f"==> Generating (iterations={iterations}): "  
-
     phases = np.zeros((n_time, n_ant, n_chan, n_dir, n_corr),
                         dtype=np.complex64)
     for t in range(n_time):
         for p in range(n_ant):
             for c in [0, n_corr - 1]:
-                # Progress Bar
-                progress_bar(head, iterations + 1, 2 * t * n_ant\
-                                + 2 * p + 2)
-
                 # Get screen at source locations
                 screen = basis.dot(alphas[t, p, :, c])
 
                 # Apply frequency scaling
                 phases[t, p, :, :, c] = screen[None, :] / freq_norm[:, None]
-
-    print()
 
     # Return phase-form gains
     return np.exp(1.0j * phases)
@@ -81,16 +71,9 @@ def normal_gains(t, nu, s, n_time, n_ant, n_chan,
 
     # Simulate independent gain per antenna and direction
     gains = np.zeros((n_time, n_ant, n_chan, 
-                n_dir, n_corr), dtype=np.complex128)
-    
-    iterations = n_ant * n_corr
-    head = f"==> Generating (iterations={iterations}): "    
+                n_dir, n_corr), dtype=np.complex128)  
     for p in range(n_ant):
         for c in range(n_corr):
-            
-            # Progress Bar
-            progress_bar(head, iterations + 1, p * n_corr + c + 1)
-
             # Generate random complex vector
             xi = np.random.randn(n_time, n_chan, n_dir)/np.sqrt(2)\
                     + 1.0j * np.random.randn(n_time, n_chan, n_dir)/np.sqrt(2)
@@ -98,8 +81,6 @@ def normal_gains(t, nu, s, n_time, n_ant, n_chan,
             # Apply to field
             gains[:, p, :, :, c] = \
                 kt.kron_matvec(L, xi).reshape(n_time, n_chan, n_dir) + 1.0
-
-    print()
 
     # Return normal-form gains
     return gains
@@ -181,11 +162,6 @@ def new(ms, sky_model, **kwargs):
     
     # Choose between phase-only or normal
     if options.type == "phase":
-        # Run phase-only
-        print("==> Simulating `phase-only` gains, with dimensions ("\
-            + f"n_time={n_time}, n_ant={n_ant}, n_chan={n_chan}, "\
-            + f"n_dir={n_dir}, n_corr={n_corr})")
-
         jones = phase_gains(lm, freq, n_time, n_ant, 
                                 n_chan, n_dir, n_corr, 
                                 options.std)
@@ -193,11 +169,6 @@ def new(ms, sky_model, **kwargs):
     elif options.type == "normal":
         # With normal selected, get differentials
         lt, lnu, ls = options.diffs
-
-        # Run normal
-        print("==> Simulating `normal` gains, with dimensions ("\
-            + f"n_time={n_time}, n_ant={n_ant}, n_chan={n_chan}, "\
-            + f"n_dir={n_dir}, n_corr={n_corr})")
         jones = normal_gains(tbin_indices, freq, lm,
                                 n_time, n_ant, n_chan, 
                                 n_dir, n_corr, options.std, 
@@ -209,4 +180,3 @@ def new(ms, sky_model, **kwargs):
     
     with open(gains_file, 'wb') as file:            
             np.save(file, jones)
-    print(f"==> Completed and gains saved to: {gains_file}")

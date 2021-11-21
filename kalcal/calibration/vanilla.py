@@ -1,14 +1,16 @@
 from omegaconf import OmegaConf as ocf
-from kalcal.filters import ekf, iekf
+from kalcal.filters import ekf
 from kalcal.smoothers import eks
 from kalcal.tools.utils import gains_vector, concat_dir_axis
 from dask import array as da 
-from dask.diagnostics import ProgressBar
 from daskms import xds_from_ms, xds_to_table
 from africanus.calibration.utils import corrupt_vis, correct_vis
 import numpy as np
 from time import time
 
+# Direction of algorithms
+FORWARD = 0
+BACKWARD = 1
 
 def calibrate(msname, **kwargs):
     """A vanilla calibrate command to use the kalman
@@ -98,17 +100,14 @@ def calibrate(msname, **kwargs):
     # Find mode to use
     if s_model.all():
         # All correlations
-        mode = "FULL"
         corr = [0, 1, 2, 3]
         
     elif s_model[[0, 3]].all():
         # First and last correlations
-        mode = "DIAG"
         corr = [0, 3]
 
     elif s_model[0]:
         # No correlations
-        mode = "NONE"
         corr = [0]
 
     else:
@@ -122,17 +121,12 @@ def calibrate(msname, **kwargs):
     smooth_gains = np.zeros((n_time, n_ant, n_chan, n_dir, n_corr, 2),
                                 dtype=np.complex128)
 
-    # Run algorithm on each correlation independently
-    print(f"==> Correlation Mode: {mode}")
-
     # Create own weights
     if options.sigma_n is not None:
         cvar = 2 * options.sigma_n**2
         weight = 1.0/cvar * np.ones_like(weight)
     
-    for i, c in enumerate(corr):
-        print(f"==> Running corr={c} ({i + 1}/{len(corr)})")
-        
+    for c in corr:
         # Get data related to correlation
         cmodel = model[..., c]
         cvis = vis[..., c]
@@ -149,10 +143,7 @@ def calibrate(msname, **kwargs):
             * np.eye(n_ant * (n_ant - 1) * n_chan, dtype=np.complex128) 
 
         # Variable to keep track of algorithm direction
-        a_dir = "forward"
-
-        # Run Kalman Filter for requested number of times
-        total_start = filter_start = time()
+        a_dir = FORWARD
 
         for i in range(options.filter):
             m, P = kalman_filter(mp, Pp, cmodel, cvis, cweight, Q, R, 
@@ -161,9 +152,9 @@ def calibrate(msname, **kwargs):
 
             # Correct flipping if last iteration
             if i == options.filter - 1:
-                if a_dir == "backward":
+                if a_dir == BACKWARD:
                     # Reset algorithm direction
-                    a_dir = "forward"
+                    a_dir = FORWARD
                     
                     # Flip arrays
                     m = m[::-1]
@@ -175,10 +166,10 @@ def calibrate(msname, **kwargs):
                     tbin_counts = tbin_counts[::-1] # For consistency
             else:
                 # Set algorithm direction
-                if a_dir == "forward":
-                    a_dir = "backward"
-                elif a_dir == "backward":
-                    a_dir = "forward"
+                if a_dir == FORWARD:
+                    a_dir = BACKWARD
+                elif a_dir == BACKWARD:
+                    a_dir = FORWARD
                 
                 # Flip arrays
                 mp = gains_vector(m[-1])
@@ -192,29 +183,25 @@ def calibrate(msname, **kwargs):
         # Save filter gains
         filter_gains[..., c, :] = m.copy()
 
-        # Stop filter timer and start smoother timer
-        filter_time = time() - filter_start
-        smoother_start = time()
-
         # Run Kalman Smoother for requested number of times
         for i in range(options.smoother):
             ms, Ps, _ = kalman_smoother(m, P, Q)        
 
             # Correct flipping if last iteration
             if i == options.smoother - 1:
-                if a_dir == "backward":
+                if a_dir == BACKWARD:
                     # Reset algorithm direction
-                    a_dir = "forward"
+                    a_dir = FORWARD
                     
                     # Flip arrays
                     ms = ms[::-1]
                     Ps = Ps[::-1]
             else:
                 # Set algorithm direction
-                if a_dir == "forward":
-                    a_dir = "backward"
-                elif a_dir == "backward":
-                    a_dir = "forward"
+                if a_dir == FORWARD:
+                    a_dir = BACKWARD
+                elif a_dir == BACKWARD:
+                    a_dir = FORWARD
                 
                 # Flip arrays
                 m = ms[::-1]
@@ -222,20 +209,6 @@ def calibrate(msname, **kwargs):
 
         # Save smoother gains
         smooth_gains[..., c, :] = ms.copy()
-
-        # Stop time
-        stop_time = time()
-        total_time = stop_time - total_start
-        smoother_time = stop_time - smoother_start        
-
-        # Show timer results
-        print(f"==> {options.filter} filter run(s) "\
-            + f"in {np.round(filter_time, 3)} s, "\
-            + f"{options.smoother} smoother run(s) "\
-            + f"in {np.round(smoother_time, 3)} s, "\
-            + f"total taken: {np.round(total_time, 3)} s")
-
-    print("==> Calibration complete.")
 
     if options.out_data is not None and options.out_data != "":
         # Set off-diagonals to ones for gains
@@ -258,7 +231,6 @@ def calibrate(msname, **kwargs):
                             chunks=MS.get(options.vis_column).chunks)
         
         # Assign and write to ms
-        print(f"==> Writing corrected smoother visibilties to `{options.out_data}`")
         MS = MS.assign(**{options.out_data: (("row", "chan", "corr"), 
                     corrected_data.astype(np.complex64))})
 
@@ -273,30 +245,19 @@ def calibrate(msname, **kwargs):
             weight_spectrum = da.from_array(weight_spectrum,
                             chunks=MS.get(options.vis_column).chunks)
 
-            print(f"==> Writing new imaging weights to `{options.out_weight}`")
             MS = MS.assign(**{options.out_weight: (("row", "chan", "corr"), 
                     weight_spectrum.astype(np.float32))})
 
             columns.append(options.out_weight)
 
-        write = xds_to_table(MS, msname, columns)
-        
-        # Begin writing
-        with ProgressBar():
-            write.compute()
+        xds_to_table(MS, msname, columns).write()
     
     # Output filter gains to npy file
     if options.out_filter is not None and options.out_filter != "":
         with open(options.out_filter, "wb") as file:
             np.save(file, filter_gains)
-        print(f"==> Filter gains saved to `{options.out_filter}`")
-    else:
-        print(f"==> Filter gains not saved")
 
     # Output smoother gains to npy file
     if options.out_smoother is not None and options.out_smoother != "":
         with open(options.out_smoother, "wb") as file:
             np.save(file, smooth_gains)
-        print(f"==> Smoother gains saved to `{options.out_smoother}`")
-    else:
-        print(f"==> Smoother gains not saved")

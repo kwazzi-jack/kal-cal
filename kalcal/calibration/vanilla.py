@@ -250,7 +250,7 @@ def calibrate(msname, **kwargs):
 
             columns.append(options.out_weight)
 
-        xds_to_table(MS, msname, columns).write()
+        xds_to_table(MS, msname, columns).compute()
     
     # Output filter gains to npy file
     if options.out_filter is not None and options.out_filter != "":

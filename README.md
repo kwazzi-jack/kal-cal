@@ -22,16 +22,16 @@ import kalcal
 
 Within `kalcal` exists the following subsections:
 
-- `calibration` - Filter and Smoother algorithms to calibrate for gains,
-- `cli` - Command-Line Interface section that houses the commands for **kal-cal**,
-- `create` - Simulation functions for measurement sets, gains and visibilities,
-- `datasets` - Pre-defined datasets such as sky-models and antenna tables,
-- `examples` - Quick tutorials on how to utilize some of the basic functionality of **kal-cal**, both as an API and a CLI,
-- `filters` - Contains various optimized filtering algorithms to be used during calibration,
-- `plotting` - Set of plotting tools to look at results of the calibration,
-- `smoothers` - Contains various optimized smoothing algorithms to be used during calibration,
-- `tools` - Extra functionality and utilities too small for its own section,
-- `tuners` - Hyperparameter tuning algorithms based on EM-algorithm for linear Kalman filters and smoothers.
+- [`calibration`](https://github.com/brianwelman2/kal-cal/tree/main/kalcal/calibration) - Filter and Smoother algorithms to calibrate for gains,
+- [`cli`](https://github.com/brianwelman2/kal-cal/tree/main/kalcal/cli) - Command-Line Interface section that houses the commands for **kal-cal**,
+- [`create`](https://github.com/brianwelman2/kal-cal/tree/main/kalcal/create) - Simulation functions for measurement sets, gains and visibilities,
+- [`datasets`](https://github.com/brianwelman2/kal-cal/tree/main/kalcal/datasets) - Pre-defined datasets such as sky-models and antenna tables,
+- [`examples`](https://github.com/brianwelman2/kal-cal/tree/main/kalcal/examples) - Quick tutorials on how to utilize some of the basic functionality of **kal-cal**, both as an API and a CLI,
+- [`filters`](https://github.com/brianwelman2/kal-cal/tree/main/kalcal/filters) - Contains various optimized filtering algorithms to be used during calibration,
+- [`plotting`](https://github.com/brianwelman2/kal-cal/tree/main/kalcal/plotting) - Set of plotting tools to look at results of the calibration,
+- [`smoothers`](https://github.com/brianwelman2/kal-cal/tree/main/kalcal/smoothers) - Contains various optimized smoothing algorithms to be used during calibration,
+- [`tools`](https://github.com/brianwelman2/kal-cal/tree/main/kalcal/tools) - Extra functionality and utilities too small for its own section,
+- [`tuners`](https://github.com/brianwelman2/kal-cal/tree/main/kalcal/tuners) - Hyperparameter tuning algorithms based on EM-algorithm for linear Kalman filters and smoothers.
 
 If you want to create data to test the library on, use the `create` section to generate a measurement set, gains to corrupt the visibilities, and then the visibilities corrupted by the gains with added noise. 
 

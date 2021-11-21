@@ -22,33 +22,33 @@ Below is a pipeline you can use to test DI-calibration (DD-calibration is a WIP)
 
 - Simulate a measurement set using `simms` via `kal-create`:
 
-```[bash]
+```bash
 kal-create ms [OPTIONS] MSNAME
 ```
 > Be aware that even though it uses `simms`, not all functionality of `simms` is in place in this function so if you wish to utilize more options, then rather uses `simms` itself. This function was merely created to automate antenna table selection.
 
 - Simulate gains for the given measurement set via `kal-create`:
 
-```[bash]
+```bash
 kal-create gains [OPTIONS] MS SKY_MODEL
 ```
 
 - Simulate visibilities for the given measurement set using gains via `kal-create`:
 
-```[bash]
+```bash
 kal-create data [OPTIONS] MS SKY_MODEL GAINS
 ```
 > Utilizes `dask` and `dask-ms` to compute all of this for a speed-up so pay attention to the `ncpu` option as the default will use all cores.
 
 - Calibrate over noisy corrupted visibilities via `kal-calibrate`:
 
-```[bash]
+```bash
 kal-calibrate vanilla [OPTIONS] MS
 ```
 
 - Plot results as a gains-product plot via `kal-plot`:
 
-```[bash]
+```bash
 kal-plot gains [OPTIONS]
 ```
 
@@ -60,31 +60,31 @@ This is simular to the `bash` commands, but here we insert all our options in a 
 
 - Simulate a measurement set using `simms` via `kal-create`:
 
-```[bash]
+```bash
 kal-create ms --yaml options_file.yml MSNAME
 ```
 
 - Simulate gains for the given measurement set via `kal-create`:
 
-```[bash]
+```bash
 kal-create gains --yaml options_file.yml MS SKY_MODEL
 ```
 
 - Simulate visibilities for the given measurement set using gains via `kal-create`:
 
-```[bash]
+```bash
 kal-create data --yaml options_file.yml MS SKY_MODEL GAINS
 ```
 
 - Calibrate over noisy corrupted visibilities via `kal-calibrate`:
 
-```[bash]
+```bash
 kal-calibrate vanilla --yaml options_file.yml MS
 ```
 
 - Plot results as a gains-product plot via `kal-plot`:
 
-```[bash]
+```bash
 kal-plot gains --yaml options_file.yml
 ```
 
@@ -93,7 +93,7 @@ kal-plot gains --yaml options_file.yml
 | **NOTE**: See `kalcal` dir for examples of the following
 
 This command takes in a single `yaml` file with the following format:
-```[yaml]
+```yaml
 1:                              # <-- Unique ID for this command
   command: "kal-create ms"      # <-- Command to use in kal-cal suite (see bash section)
   arguments:                    # <-- Command arguments section (required)
@@ -112,7 +112,7 @@ This command takes in a single `yaml` file with the following format:
 ```
 
 To run this pipeline of commands, simply run:
-```[bash]
+```bash
 kalcal pipeline_file.yml
 ```
 

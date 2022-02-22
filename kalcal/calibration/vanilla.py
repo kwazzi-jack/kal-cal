@@ -96,15 +96,15 @@ def calibrate(msname, **kwargs):
     s_model = model[s_row, s_chan, s_dir]
 
     # Check correlation axis size
-    if s_model.all():
+    if s_model.shape[-1] == 4:
         # All correlations
         corr = [0, 1, 2, 3]
 
-    elif s_model[[0, 3]].all():
+    elif s_model.shape[-1] == 2:
         # First and last correlations
-        corr = [0, 3]
+        corr = [0, 1]
 
-    elif s_model[0]:
+    elif s_model.shape[-1] == 1:
         # No correlations
         corr = [0]
 

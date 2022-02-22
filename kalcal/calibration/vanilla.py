@@ -7,6 +7,7 @@ from daskms import xds_from_ms, xds_to_table
 from africanus.calibration.utils import corrupt_vis, correct_vis
 import numpy as np
 from time import time
+import os
 
 # Direction of algorithms
 FORWARD = 0
@@ -32,6 +33,7 @@ def calibrate(msname, **kwargs):
         import numba
         dask.config.set(pool=ThreadPool(options.ncpu))
         numba.set_num_threads(n=options.ncpu)
+        os.environ["OPENBLAS_NUM_THREADS"] = str(int(options.ncpu))
     else:
         import multiprocessing
         dask.config.set(pool=ThreadPool(multiprocessing.cpu_count()))

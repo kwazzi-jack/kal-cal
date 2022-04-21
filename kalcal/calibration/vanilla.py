@@ -33,6 +33,7 @@ def calibrate(msname, **kwargs):
         import numba
         dask.config.set(pool=ThreadPool(options.ncpu))
         numba.set_num_threads(n=options.ncpu)
+        os.environ["OMP_NUM_THREADS"] = str(int(options.ncpu))
         os.environ["OPENBLAS_NUM_THREADS"] = str(int(options.ncpu))
     else:
         import multiprocessing

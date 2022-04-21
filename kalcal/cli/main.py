@@ -3,6 +3,7 @@ import oyaml as yl
 from omegaconf import OmegaConf as ocf
 import subprocess, os, tempfile
 from kalcal.cli import calibrate_vanilla
+from kalcal.cli import calibrate_cheater
 from kalcal.cli import create_ms
 from kalcal.cli import create_gains
 from kalcal.cli import create_data
@@ -85,6 +86,7 @@ def kalcal_plot():
 
 # Add commands to kal-calibrate
 kalcal_calibrate.add_command(calibrate_vanilla.vanilla)
+kalcal_calibrate.add_command(calibrate_cheater.cheater)
 
 # Add commands to kal-create
 kalcal_create.add_command(create_ms.ms)

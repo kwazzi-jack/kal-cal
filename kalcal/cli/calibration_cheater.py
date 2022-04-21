@@ -1,5 +1,5 @@
 import click
-from kalcal.calibration.vanilla import calibrate as calibrate_cmd
+from kalcal.calibration.cheater import calibrate as calibrate_cmd
 
 
 @click.command()
@@ -29,6 +29,11 @@ from kalcal.calibration.vanilla import calibrate as calibrate_cmd
 @click.option("--step-control", type=float, 
                 default=1/2, show_default=True,
                 help="Step-control on filter update step.")
+
+@click.option("--true-gains", type=str, 
+                help="Path to true-gains used to create corrupted visbilities."\
+                    + "It is used to set the first prior state estimate,"\
+                    + "to imitate maximum-likelihood estimate start.")
 
 @click.option("--model-column", type=str, 
                 default="MODEL_VIS", show_default=True,
@@ -66,10 +71,10 @@ from kalcal.calibration.vanilla import calibrate as calibrate_cmd
 @click.option("-y", "--yaml", type=str,
                 help="Path to yaml config file.")
 
-def vanilla(ms, **kwargs):
-    """Vanilla calibrate command with the assumption of a single
-    correlation and no directions to calibrate for. Designed 
-    as a simple implementation of the Kalman and Filter algorithm
-    to get to grips with how it works."""
+def cheater(ms, **kwargs):
+    """Cheater calibrate command works in the same way vanilla
+    with the difference that we are given a maximum-likelihood
+    prior start (m_0 known and P_0 = Q), allowing us to 'cheat'
+    the time taken to start tracking."""
 
     return calibrate_cmd(ms, **kwargs)

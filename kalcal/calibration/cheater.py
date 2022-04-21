@@ -131,15 +131,20 @@ def calibrate(msname, **kwargs):
         cvis = vis[..., c]
         cweight = weight[..., c]
 
-        # Create priors
-        mp = np.ones((n_ant, n_chan, n_dir, 2), dtype=np.complex128)
-        mp = gains_vector(mp)
-        Pp = np.eye(mp.size, dtype=np.complex128)
-
         # Noise Matrices
         Q = 2 * options.sigma_f * np.eye(mp.size, dtype=np.complex128)
         R = 2 * options.sigma_n\
             * np.eye(n_ant * (n_ant - 1) * n_chan, dtype=np.complex128)
+
+        # Create priors
+        with open(options.true_gains, "rb") as file:
+            true_gains = np.load(file)
+        
+        mp = np.ones((n_ant, n_chan, n_dir, 2), dtype=np.complex128)
+        mp[..., 0] = true_gains
+        mp[..., 1] = true_gains.conj()
+        mp = gains_vector(mp)
+        Pp = Q.copy() 
 
         # Variable to keep track of algorithm direction
         a_dir = FORWARD

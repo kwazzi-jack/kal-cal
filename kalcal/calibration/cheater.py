@@ -141,8 +141,8 @@ def calibrate(msname, **kwargs):
             true_gains = np.load(file)
         
         mp = np.ones((n_ant, n_chan, n_dir, 2), dtype=np.complex128)
-        mp[..., 0] = true_gains
-        mp[..., 1] = true_gains.conj()
+        mp[..., 0] = true_gains[0]
+        mp[..., 1] = true_gains[0].conj()
         mp = gains_vector(mp)
         Pp = Q.copy() 
 

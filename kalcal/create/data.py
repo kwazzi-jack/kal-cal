@@ -1,11 +1,9 @@
-from re import M
 import numpy as np
 import Tigger
 import dask.array as da 
 from daskms import xds_from_ms, xds_from_table, xds_to_table
 from africanus.coordinates import radec_to_lm
 from africanus.calibration.utils import chunkify_rows
-from africanus.calibration.utils.dask import compute_and_corrupt_vis
 from africanus.dft.dask import im_to_vis
 from africanus.model.coherency.dask import convert
 from africanus.calibration.utils.dask import corrupt_vis
@@ -13,7 +11,6 @@ from kalcal.datasets.sky_models import (
     MODEL_1, MODEL_4, MODEL_50
 )
 from omegaconf import OmegaConf as ocf
-from dask.diagnostics import ProgressBar
 
 
 # Sky-model paths
@@ -129,7 +126,6 @@ def new(ms, sky_model, gains, **kwargs):
     source_names = []
 
     # Cycle coordinates creating a source with flux
-    print("==> Building model visibilities")
     for d, source in enumerate(lsm.sources):
         # Extract name
         source_names.append(source.name)
@@ -211,23 +207,36 @@ def new(ms, sky_model, gains, **kwargs):
         model_vis = da.sum(model_vis, axis=2, keepdims=True)
         n_dir = 1
         source_names = [options.mname] 
-
+    
     # Select schema based on feed orientation
+    skip_convert = False
     if (feeds == ["X", "Y"]).all():
-        out_schema = [["XX", "XY"], ["YX", "YY"]]
+        if n_corr == 1:
+            skip_convert = True
+        elif n_corr == 2:
+            out_schema = ["XX", "YY"]
+            in_schema = ["I", "Q"]
+        else:
+            out_schema = [["XX", "XY"], ["YX", "YY"]]
+            in_schema = ['I', 'Q', 'U', 'V']
     elif (feeds == ["R", "L"]).all():
-        out_schema = [['RR', 'RL'], ['LR', 'LL']]
+        if n_corr == 1:
+            skip_convert = True
+        elif n_corr == 2:
+            out_schema = ["RR", "LL"]
+            in_schema = ["I", "Q"]
+        else:
+            out_schema = [["RR", "RL"], ["LR", "LL"]]
+            in_schema = ['I', 'Q', 'U', 'V']
     else:
         raise ValueError("Unknown feed orientation implementation.")
 
     # Convert Stokes to Correlations
-    in_schema = ['I', 'Q', 'U', 'V']
-    model_vis = convert(model_vis, in_schema, out_schema).reshape(
-                    (n_row, n_chan, n_dir, n_corr))
-    
+    if not skip_convert:
+        model_vis = convert(model_vis, in_schema, out_schema).reshape(
+                        (n_row, n_chan, n_dir, n_corr))
+     
     # Apply gains to model_vis
-    print("==> Corrupting visibilities")
-
     data = corrupt_vis(tbin_indices, tbin_counts, ant1, ant2,
                             jones, model_vis)
 
@@ -253,9 +262,12 @@ def new(ms, sky_model, gains, **kwargs):
     if options.std > 0.0:
     
         # Noise matrix
-        print(f"==> Applying noise (std={options.std}) to visibilities")
         noise = []
-        for i in range(2):
+
+        # Zero matrix for off-diagonals
+        zero = da.zeros((n_row, n_chan), chunks=(row_chunks, n_chan))
+
+        for i in range(n_corr):
             real = da.random.normal(loc=0.0, scale=options.std, 
                         size=(n_row, n_chan), 
                         chunks=(row_chunks, n_chan))
@@ -263,13 +275,10 @@ def new(ms, sky_model, gains, **kwargs):
                         size=(n_row, n_chan), 
                         chunks=(row_chunks, n_chan)))
             noise.append(real + imag)
-
-
-        # Zero matrix for off-diagonals
-        zero = da.zeros((n_row, n_chan), chunks=(row_chunks, n_chan))
-
-        noise.insert(1, zero)
-        noise.insert(2, zero)
+        
+        if n_corr == 4:
+            noise.insert(1, zero)
+            noise.insert(2, zero)
 
         # NP to Dask
         noise = da.stack(noise, axis=2).rechunk((
@@ -290,13 +299,4 @@ def new(ms, sky_model, gains, **kwargs):
         out_names += [options.dname]
     
     # Create a write to the table
-    write = xds_to_table(MS, ms, out_names)
-    
-    # Submit all graph computations in parallel
-    print(f"==> Executing `dask-ms` write to `{ms}` for the following columns: "\
-            + f"{', '.join(out_names)}")
-
-    with ProgressBar():
-        write.compute()
-    
-    print(f"==> Completed.")
+    xds_to_table(MS, ms, out_names)[0].compute()

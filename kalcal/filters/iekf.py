@@ -1,6 +1,6 @@
 import numpy as np
 from numba import jit, objmode
-from kalcal.tools.utils import diag_mat_dot_mat, gains_vector, gains_reshape, measure_vector, progress_bar
+from kalcal.tools.utils import diag_mat_dot_mat, gains_vector, gains_reshape, measure_vector
 from kalcal.tools.jacobian import compute_aug_csr, compute_aug_np
 from kalcal.tools.sparseops import csr_dot_vec
 
@@ -66,11 +66,7 @@ def sparse_algorithm(
 
     # Run Iterated Extended Kalman Filter with 
     # Sparse matrices
-    head = "==> Iterated Extended Kalman Filter (SPARSE): "
     for k in range(1, n_time): 
-
-        # Progress Bar
-        progress_bar(head, n_time, k)
 
         # Predict Step
         mp = gains_vector(m[k - 1])
@@ -148,9 +144,6 @@ def sparse_algorithm(
         m[k] = gains_reshape(mt, shape)
         P[k] = np.diag(np.diag(Pp - K @ J @ Pp).real)
 
-    # Newline
-    print()
-
     # Return Posterior states and covariances
     return m, P
 
@@ -217,12 +210,7 @@ def numba_algorithm(
     
     # Run Extended Kalman Filter with 
     # Sparse matrices
-    head = "==> Iterated Extended Kalman Filter (NUMPY|JIT): "
     for k in range(1, n_time): 
-        
-        # Progress Bar in object-mode
-        with objmode():
-            progress_bar(head, n_time, k)
         
         # Predict Step
         mp = gains_vector(m[k - 1])
@@ -294,9 +282,6 @@ def numba_algorithm(
         m[k] = gains_reshape(mt, shape)
         est_P = (1 - alpha) * p + alpha / (pinv + u)
         P[k] = np.diag(est_P.real)
-
-    # Newline
-    print()
 
     # Return Posterior states and covariances
     return m, P

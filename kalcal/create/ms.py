@@ -49,7 +49,6 @@ def new(msname, **kwargs):
             + f"{', '.join(antenna_tables.keys())}")
     
     # Create empty measurment set (design of simms doesn't allow suppressing of output)
-    print(f"==> Creating empty ms with `simms`: {msname}")  
     simms.create_empty_ms(
         msname=msname,
         tel=options.tel,

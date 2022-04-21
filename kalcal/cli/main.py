@@ -23,25 +23,20 @@ def kalcal_main(yaml):
 
     # Go through each step and run command
     # with appropriate settings
-    for pos, exec_block in options.items():       
+    for _, exec_block in options.items():       
 
         # Get command and subcommand
         topcmd, subcmd = exec_block["command"].split()
-        print(f"==> Running: {topcmd} {subcmd}")
 
         # Get arguments for function
         try:
             args = list(exec_block["arguments"].values())
-            print(f"==> Arguments:\n")
-            print(yl.dump(exec_block["arguments"]))
         except:
             args = []
 
         # Get options for function
         try:
-            kwargs = yl.dump(exec_block["options"])                   
-            print(f"==> Options:\n")
-            print(kwargs)
+            kwargs = yl.dump(exec_block["options"])    
         except:
             kwargs = None
 

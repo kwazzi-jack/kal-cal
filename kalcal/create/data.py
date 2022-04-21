@@ -207,20 +207,35 @@ def new(ms, sky_model, gains, **kwargs):
         model_vis = da.sum(model_vis, axis=2, keepdims=True)
         n_dir = 1
         source_names = [options.mname] 
-
+    
     # Select schema based on feed orientation
+    skip_convert = False
     if (feeds == ["X", "Y"]).all():
-        out_schema = [["XX", "XY"], ["YX", "YY"]]
+        if n_corr == 1:
+            skip_convert = True
+        elif n_corr == 2:
+            out_schema = ["XX", "YY"]
+            in_schema = ["I", "Q"]
+        else:
+            out_schema = [["XX", "XY"], ["YX", "YY"]]
+            in_schema = ['I', 'Q', 'U', 'V']
     elif (feeds == ["R", "L"]).all():
-        out_schema = [['RR', 'RL'], ['LR', 'LL']]
+        if n_corr == 1:
+            skip_convert = True
+        elif n_corr == 2:
+            out_schema = ["RR", "LL"]
+            in_schema = ["I", "Q"]
+        else:
+            out_schema = [["RR", "RL"], ["LR", "LL"]]
+            in_schema = ['I', 'Q', 'U', 'V']
     else:
         raise ValueError("Unknown feed orientation implementation.")
 
     # Convert Stokes to Correlations
-    in_schema = ['I', 'Q', 'U', 'V']
-    model_vis = convert(model_vis, in_schema, out_schema).reshape(
-                    (n_row, n_chan, n_dir, n_corr))
-    
+    if not skip_convert:
+        model_vis = convert(model_vis, in_schema, out_schema).reshape(
+                        (n_row, n_chan, n_dir, n_corr))
+     
     # Apply gains to model_vis
     data = corrupt_vis(tbin_indices, tbin_counts, ant1, ant2,
                             jones, model_vis)
@@ -248,7 +263,11 @@ def new(ms, sky_model, gains, **kwargs):
     
         # Noise matrix
         noise = []
-        for i in range(2):
+
+        # Zero matrix for off-diagonals
+        zero = da.zeros((n_row, n_chan), chunks=(row_chunks, n_chan))
+
+        for i in range(n_corr):
             real = da.random.normal(loc=0.0, scale=options.std, 
                         size=(n_row, n_chan), 
                         chunks=(row_chunks, n_chan))
@@ -256,13 +275,10 @@ def new(ms, sky_model, gains, **kwargs):
                         size=(n_row, n_chan), 
                         chunks=(row_chunks, n_chan)))
             noise.append(real + imag)
-
-
-        # Zero matrix for off-diagonals
-        zero = da.zeros((n_row, n_chan), chunks=(row_chunks, n_chan))
-
-        noise.insert(1, zero)
-        noise.insert(2, zero)
+        
+        if n_corr == 4:
+            noise.insert(1, zero)
+            noise.insert(2, zero)
 
         # NP to Dask
         noise = da.stack(noise, axis=2).rechunk((
@@ -283,4 +299,4 @@ def new(ms, sky_model, gains, **kwargs):
         out_names += [options.dname]
     
     # Create a write to the table
-    xds_to_table(MS, ms, out_names).compute()
+    xds_to_table(MS, ms, out_names)[0].compute()
